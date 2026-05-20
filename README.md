@@ -2,6 +2,22 @@
 An LLM chat interface that integrates Cyber Security Knoledge Graph for cybersecurity risk analysis s
 ---
 
+## 📋 Deskripsi Proyek
+
+Sistem chatbot berbasis LLM yang terintegrasi dengan **SEPSES Cybersecurity Knowledge Graph (CSKG)** untuk analisis keamanan siber. Mengimplementasikan arsitektur **Hybrid RAG + GraphRAG** yang menggabungkan:
+- SPARQL query ke SEPSES KG (CVE, CWE, CAPEC, CPE, ATT&CK)
+- Semantic search atas log keamanan lokal via ChromaDB
+- Multi-LLM evaluation (GPT-4o-mini vs Mistral-7B)
+
+## 👥 Tim Pengembang
+
+| Peran | Nama | Branch |
+|-------|------|--------|
+| Knowledge Architect | Ajie Armansyah Sunaryo | `feature/kg-engine` |
+| RAG Logic Dev | Fahmi Abdillah Zain | `feature/rag-logic` |
+| Full-Stack UI Dev | Muhammad Dhafin Alfeizar Gandhan | `feature/frontend-ui` |
+| Evaluator & Log Dev | Satya Wira Pramudita | `feature/eval-log-dev` |
+
 ## 📚 Sumber Data SEPSES CSKG
 
 | Dataset | URL |
