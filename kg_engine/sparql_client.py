@@ -73,6 +73,129 @@ class SparqlClient:
         logger.info("query_executed", rows_returned=len(rows), query_preview=sparql_str[:80])
         return rows
 
+    def get_cve_details(self, cve_id: str) -> Dict[str, Any]:
+        cve_id = cve_id.strip().upper()
+        if not cve_id.startswith("CVE-"):
+            raise ValueError(f"Format CVE ID tidak valid: '{cve_id}'. Gunakan format CVE-YYYY-NNNN.")
+
+        cve_uri = f"<{CVE_URI_BASE}{cve_id}>"
+
+        sparql = f"""
+{PREFIXES}
+SELECT DISTINCT
+    ?description ?issued
+    ?cweId ?cweName
+    ?capecId ?capecName
+    ?score ?attackVector ?cpeProduct
+WHERE {{
+    {cve_uri} cve:cveId "{cve_id}" .
+    OPTIONAL {{ {cve_uri} cve:description ?description . }}
+    OPTIONAL {{ {cve_uri} cve:issued     ?issued . }}
+    OPTIONAL {{
+        {cve_uri} cve:hasCWE ?cwe .
+        OPTIONAL {{ ?cwe cwe:cweId ?cweId . }}
+        OPTIONAL {{ ?cwe cwe:name  ?cweName . }}
+        OPTIONAL {{
+            ?cwe cwe:hasCAPEC ?capec .
+            OPTIONAL {{ ?capec capec:capecId ?capecId . }}
+            OPTIONAL {{ ?capec capec:name    ?capecName . }}
+        }}
+    }}
+    OPTIONAL {{
+        {cve_uri} cve:hasCVSS ?cvssNode .
+        OPTIONAL {{ ?cvssNode cvss:baseScore    ?score . }}
+        OPTIONAL {{ ?cvssNode cvss:attackVector ?attackVector . }}
+    }}
+    OPTIONAL {{
+        {cve_uri} cve:hasCPE ?cpe .
+        OPTIONAL {{ ?cpe cpe:productId ?cpeProduct . }}
+    }}
+}}
+LIMIT 50
+"""
+        rows = self.execute_query(sparql)
+
+        if not rows:
+            logger.warning("cve_not_found", cve_id=cve_id)
+            return {
+                "cve_id": cve_id,
+                "description": f"CVE {cve_id} tidak ditemukan di SEPSES KG.",
+                "issued": None,
+                "cwes": [],
+                "capecs": [],
+                "cvss_score": None,
+                "attack_vector": None,
+                "cpe_products": [],
+                "found": False,
+            }
+
+        cwes, capecs, products = set(), set(), set()
+        description = rows[0].get("description", "")
+        issued = rows[0].get("issued", "")
+        score = rows[0].get("score")
+        attack_vector = rows[0].get("attackVector")
+
+        for row in rows:
+            if row.get("cweId"):
+                cwes.add(f"{row['cweId']}: {row.get('cweName', '')}")
+            if row.get("capecId"):
+                capecs.add(f"{row['capecId']}: {row.get('capecName', '')}")
+            if row.get("cpeProduct"):
+                products.add(row["cpeProduct"])
+
+        logger.info(
+            "cve_details_retrieved",
+            cve_id=cve_id,
+            cwes=len(cwes),
+            capecs=len(capecs),
+            score=score,
+        )
+
+        return {
+            "cve_id": cve_id,
+            "description": description,
+            "issued": issued,
+            "cwes": sorted(cwes),
+            "capecs": sorted(capecs),
+            "cvss_score": float(score) if score else None,
+            "attack_vector": attack_vector,
+            "cpe_products": sorted(products),
+            "found": True,
+        }
+
+    def get_capec_from_cve(self, cve_id: str) -> List[Dict[str, str]]:
+        cve_id = cve_id.strip().upper()
+        cve_uri = f"<{CVE_URI_BASE}{cve_id}>"
+
+        sparql = f"""
+{PREFIXES}
+SELECT DISTINCT ?cweId ?cweName ?capecId ?capecName ?capecDescription
+WHERE {{
+    {cve_uri} cve:hasCWE ?cwe .
+    OPTIONAL {{ ?cwe cwe:cweId ?cweId . }}
+    OPTIONAL {{ ?cwe cwe:name  ?cweName . }}
+    OPTIONAL {{
+        ?cwe cwe:hasCAPEC ?capec .
+        OPTIONAL {{ ?capec capec:capecId    ?capecId . }}
+        OPTIONAL {{ ?capec capec:name       ?capecName . }}
+        OPTIONAL {{ ?capec capec:description ?capecDescription . }}
+    }}
+}}
+ORDER BY ?cweId ?capecId
+"""
+        rows = self.execute_query(sparql)
+        results = []
+        for row in rows:
+            results.append({
+                "cwe_id":     row.get("cweId", ""),
+                "cwe_name":   row.get("cweName", ""),
+                "capec_id":   row.get("capecId", ""),
+                "capec_name": row.get("capecName", ""),
+                "capec_desc": row.get("capecDescription", ""),
+            })
+        logger.info("capec_chain_retrieved", cve_id=cve_id, chain_length=len(results))
+        return results
+
     def _try_endpoint(self, endpoint_url: str, sparql_str: str) -> Optional[Dict]:
         try:
             wrapper = SPARQLWrapper(endpoint_url)
