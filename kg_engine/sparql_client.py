@@ -196,6 +196,103 @@ ORDER BY ?cweId ?capecId
         logger.info("capec_chain_retrieved", cve_id=cve_id, chain_length=len(results))
         return results
 
+    def search_vulnerabilities_by_product(
+        self,
+        product_name: str,
+        min_score: float = 0.0,
+        limit: int = 20,
+    ) -> List[Dict[str, Any]]:
+        sparql = f"""
+{PREFIXES}
+SELECT DISTINCT ?cveId ?description ?score ?cpeProduct
+WHERE {{
+    ?cve cve:cveId  ?cveId ;
+         cve:hasCPE ?cpe .
+    ?cpe cpe:productId ?cpeProduct .
+    OPTIONAL {{ ?cve cve:description ?description . }}
+    OPTIONAL {{
+        ?cve cve:hasCVSS ?cvssNode .
+        ?cvssNode cvss:baseScore ?score .
+    }}
+    FILTER(CONTAINS(LCASE(STR(?cpeProduct)), LCASE("{product_name}")))
+    FILTER(!BOUND(?score) || ?score >= {min_score})
+}}
+ORDER BY DESC(?score)
+LIMIT {limit}
+"""
+        rows = self.execute_query(sparql)
+        logger.info(
+            "product_search_done",
+            product=product_name,
+            min_score=min_score,
+            results=len(rows),
+        )
+        return [
+            {
+                "cve_id":      r.get("cveId", ""),
+                "description": r.get("description", ""),
+                "score":       float(r["score"]) if r.get("score") else None,
+                "product":     r.get("cpeProduct", ""),
+            }
+            for r in rows
+        ]
+
+    def get_cwes_by_capec(self, capec_id: str) -> List[Dict[str, str]]:
+        capec_uri = f"<{CAPEC_URI_BASE}{capec_id}>"
+
+        sparql = f"""
+{PREFIXES}
+SELECT DISTINCT ?cweId ?cweName ?cveId
+WHERE {{
+    ?cwe cwe:hasCAPEC {capec_uri} .
+    OPTIONAL {{ ?cwe cwe:cweId ?cweId . }}
+    OPTIONAL {{ ?cwe cwe:name  ?cweName . }}
+    OPTIONAL {{
+        ?cve cve:hasCWE ?cwe .
+        ?cve cve:cveId  ?cveId .
+    }}
+}}
+LIMIT 30
+"""
+        rows = self.execute_query(sparql)
+        return [
+            {
+                "cwe_id":   r.get("cweId", ""),
+                "cwe_name": r.get("cweName", ""),
+                "cve_id":   r.get("cveId", ""),
+            }
+            for r in rows
+        ]
+
+    def get_top_cvss_cves(self, min_score: float = 9.0, limit: int = 10) -> List[Dict]:
+        sparql = f"""
+{PREFIXES}
+SELECT DISTINCT ?cveId ?score
+WHERE {{
+    ?cve cve:cveId  ?cveId ;
+         cve:hasCVSS ?cvssNode .
+    ?cvssNode cvss:baseScore ?score .
+    FILTER(?score >= {min_score})
+}}
+ORDER BY DESC(?score)
+LIMIT {limit}
+"""
+        rows = self.execute_query(sparql)
+        return [
+            {"cve_id": r.get("cveId", ""), "score": float(r.get("score", 0))}
+            for r in rows
+        ]
+
+    def ping(self) -> bool:
+        try:
+            rows = self.execute_query(
+                f"{PREFIXES}\nSELECT (COUNT(?s) AS ?n) WHERE {{ ?s a cve:CVE . }} LIMIT 1",
+                use_cache=False,
+            )
+            return len(rows) > 0
+        except Exception:
+            return False
+
     def _try_endpoint(self, endpoint_url: str, sparql_str: str) -> Optional[Dict]:
         try:
             wrapper = SPARQLWrapper(endpoint_url)
