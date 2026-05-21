@@ -10,7 +10,7 @@ Sistem chatbot berbasis LLM yang terintegrasi dengan **SEPSES Cybersecurity Know
 - Semantic search atas log keamanan lokal via ChromaDB
 - Multi-LLM evaluation (GPT-4o-mini vs Mistral-7B)
 
-Anggota Kelompok:
+## Anggota Kelompok:
 
 | Nama | NIM | Github |
 |-------|------|--------|
