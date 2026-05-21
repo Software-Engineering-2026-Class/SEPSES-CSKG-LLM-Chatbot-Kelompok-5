@@ -9,6 +9,15 @@ Sistem chatbot berbasis LLM yang terintegrasi dengan **SEPSES Cybersecurity Know
 - Semantic search atas log keamanan lokal via ChromaDB
 - Multi-LLM evaluation (GPT-4o-mini vs Mistral-7B)
 
+Anggota Kelompok:
+
+| Nama | NIM | Github |
+|-------|------|--------|
+| Fahmi Abdillah Zain | 24/539422/PA/22904 | FahmiZain16 |
+| Muhammad Dhafin A. G. | 24/539735/PA/22916 | Lemielll |
+| Ajie Armansyah Sunaryo | 24/545286/PA/23170 | AjieArmansyahSunaryo |
+| Satya Wira Pramudita | 24/543649/PA/23102 | satyawirapramudita |
+
 ## 👥 Tim Pengembang
 
 | Peran | Nama | Branch |
