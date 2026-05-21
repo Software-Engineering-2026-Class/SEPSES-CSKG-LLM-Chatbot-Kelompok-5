@@ -38,5 +38,43 @@ GLOBAL_CSS = """
     --border-accent: #00ff8840;
     --gradient-main: linear-gradient(135deg, #0a0e1a 0%, #0f1629 50%, #0a1628 100%);
 }
+
+.stApp {
+    background: var(--gradient-main);
+    font-family: 'Inter', sans-serif;
+    color: var(--text-primary);
+}
+
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+header {visibility: hidden;}
+
+[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #080c18 0%, #0c1526 100%);
+    border-right: 1px solid var(--border-color);
+}
+[data-testid="stSidebar"] * {
+    color: var(--text-primary) !important;
+}
+
+.sidebar-logo {
+    padding: 1.5rem 1rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 1rem;
+}
+.sidebar-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--accent-green) !important;
+    letter-spacing: 0.05em;
+    text-shadow: 0 0 20px rgba(0,255,136,0.4);
+}
+.sidebar-subtitle {
+    font-size: 0.72rem;
+    color: var(--text-muted) !important;
+    margin-top: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
 </style>
 """
