@@ -1,9 +1,4 @@
 """
-SEPSES CSKG LLM Chatbot - Prompt Templates
-============================================
-Tanggung Jawab  : Fahmi Abdillah Zain (RAG Logic Dev)
-Branch          : feature/rag-logic
-
 Deskripsi:
     Semua system/user prompt templates untuk mode analisis yang berbeda.
     Templates menggunakan format f-string dengan placeholder {context} dan {question}.
