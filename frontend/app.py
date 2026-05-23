@@ -76,5 +76,91 @@ header {visibility: hidden;}
     text-transform: uppercase;
     letter-spacing: 0.08em;
 }
+/* ── Nav Button  ────────────────────────────── */
+[data-testid="stSidebar"] .stRadio label {
+    cursor: pointer;
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    margin: 2px 0;
+    transition: all 0.2s ease;
+    display: block;
+    font-size: 0.9rem;
+}
+[data-testid="stSidebar"] .stRadio label:hover {
+    background: rgba(0,255,136,0.08) !important;
+    color: var(--accent-green) !important;
+}
+/* ── Cards ────────────────────────────────────────────────── */
+.metric-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+.metric-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent-green), var(--accent-blue));
+}
+.metric-card:hover {
+    border-color: var(--border-accent);
+    box-shadow: 0 0 25px rgba(0,255,136,0.1);
+    transform: translateY(-2px);
+}
+.metric-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.4rem;
+}
+.metric-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--accent-green);
+    font-family: 'JetBrains Mono', monospace;
+}
+.metric-sub {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.2rem;
+}
+/* ── Chat Bubbles ─────────────────────────────────────────── */
+.chat-bubble-user {
+    background: linear-gradient(135deg, #1a3a5c, #1e4a7a);
+    border: 1px solid #2a5a8a;
+    border-radius: 18px 18px 4px 18px;
+    padding: 0.9rem 1.2rem;
+    margin: 0.5rem 0;
+    max-width: 80%;
+    margin-left: auto;
+    font-size: 0.92rem;
+    box-shadow: 0 2px 12px rgba(0,180,255,0.15);
+}
+.chat-bubble-assistant {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 18px 18px 18px 4px;
+    padding: 0.9rem 1.2rem;
+    margin: 0.5rem 0;
+    max-width: 85%;
+    font-size: 0.92rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+    position: relative;
+}
+.chat-bubble-assistant::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px;
+    height: 100%;
+    background: linear-gradient(180deg, var(--accent-green), var(--accent-blue));
+    border-radius: 4px 0 0 4px;
+}
 </style>
 """
