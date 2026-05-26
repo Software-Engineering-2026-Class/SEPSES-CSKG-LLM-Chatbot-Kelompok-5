@@ -273,7 +273,30 @@ header {visibility: hidden;}
     color: var(--accent-green) !important;
 }
 
+/* ── File Uploader ────────────────────────────────────────── */
+[data-testid="stFileUploader"] {
+    background: var(--bg-card) !important;
+    border: 2px dashed var(--border-color) !important;
+    border-radius: 12px !important;
+    transition: border-color 0.2s ease;
+}
+[data-testid="stFileUploader"]:hover {
+    border-color: var(--accent-green) !important;
+}
 
+/* ── Expander ─────────────────────────────────────────────── */
+.streamlit-expanderHeader {
+    background: var(--bg-card) !important;
+    border-radius: 8px !important;
+    font-size: 0.88rem !important;
+    color: var(--text-muted) !important;
+}
+
+/* ── Scrollbar ────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-primary); }
+::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
 /* ── Animated Glow ────────────────────────────────────────── */
 @keyframes pulse-glow {
