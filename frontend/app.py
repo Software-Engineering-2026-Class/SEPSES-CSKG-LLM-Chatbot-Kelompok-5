@@ -162,5 +162,82 @@ header {visibility: hidden;}
     background: linear-gradient(180deg, var(--accent-green), var(--accent-blue));
     border-radius: 4px 0 0 4px;
 }
+/* ── Source Citation Box ──────────────────────────────────── */
+.source-box {
+    background: rgba(0,255,136,0.05);
+    border: 1px solid rgba(0,255,136,0.2);
+    border-radius: 8px;
+    padding: 0.6rem 0.9rem;
+    margin-top: 0.5rem;
+    font-size: 0.78rem;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent-green);
+}
+
+/* ── Status Badges ────────────────────────────────────────── */
+.badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+.badge-critical { background: rgba(255,77,109,0.2); color: #ff4d6d; border: 1px solid #ff4d6d40; }
+.badge-high     { background: rgba(255,140,0,0.2);  color: #ff8c00; border: 1px solid #ff8c0040; }
+.badge-medium   { background: rgba(255,214,10,0.2); color: #ffd60a; border: 1px solid #ffd60a40; }
+.badge-low      { background: rgba(0,255,136,0.15); color: #00ff88; border: 1px solid #00ff8840; }
+.badge-info     { background: rgba(0,180,255,0.15); color: #00b4ff; border: 1px solid #00b4ff40; }
+
+/* ── Section Headers ──────────────────────────────────────── */
+.section-header {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+}
+.section-header::after {
+    content: '';
+    position: absolute;
+    bottom: -2px; left: 0;
+    width: 60px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent-green), var(--accent-blue));
+}
+/* ── Input Fields ─────────────────────────────────────────── */
+.stTextInput > div > div > input,
+.stTextArea > div > div > textarea {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 10px !important;
+    color: var(--text-primary) !important;
+    font-family: 'Inter', sans-serif !important;
+    transition: border-color 0.2s ease;
+}
+.stTextInput > div > div > input:focus,
+.stTextArea > div > div > textarea:focus {
+    border-color: var(--accent-green) !important;
+    box-shadow: 0 0 0 2px rgba(0,255,136,0.15) !important;
+}
+
+/* ── Buttons ──────────────────────────────────────────────── */
+.stButton > button {
+    background: linear-gradient(135deg, #00ff88, #00b4ff) !important;
+    color: #0a0e1a !important;
+    font-weight: 600 !important;
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 0.5rem 1.5rem !important;
+    transition: all 0.3s ease !important;
+    letter-spacing: 0.03em !important;
+}
+.stButton > button:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 5px 20px rgba(0,255,136,0.4) !important;
+}
 </style>
 """
