@@ -16,7 +16,7 @@ from frontend.components.log_uploader import render_log_analyzer_page
 
 st.set_page_config(
     page_title="SEPSES CSKG Chatbot",
-    page_icon="🛡️",
+    # page_icon="🛡️",
     layout="wide",
     initial_sidebar_state="expanded",
     menu_items={
