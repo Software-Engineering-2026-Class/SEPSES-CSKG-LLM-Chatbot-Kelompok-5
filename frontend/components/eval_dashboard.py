@@ -124,6 +124,8 @@ LLM_COLORS = {
     "anthropic/claude-3-opus": "#c85d3c",
     "mistralai/mistral-7b-instruct": "#b967ff",
     "mistralai/mixtral-8x7b-instruct": "#9b4fd9",
+    "mistralai/mixtral-8x22b-instruct": "#8a3ec9",
+    "mistralai/mistral-large": "#aa5fe5",
     "meta-llama/llama-3-70b-instruct": "#0668e1",
     "meta-llama/llama-3-8b-instruct": "#4a9ff5",
 }

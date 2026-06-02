@@ -403,6 +403,8 @@ def _render_sidebar() -> str:
             "anthropic/claude-3.5-sonnet",
             "anthropic/claude-3-haiku",
             "mistralai/mistral-7b-instruct",
+            "mistralai/mixtral-8x7b-instruct",
+            "mistralai/mistral-large",
             "meta-llama/llama-3-70b-instruct",
         ]
 
