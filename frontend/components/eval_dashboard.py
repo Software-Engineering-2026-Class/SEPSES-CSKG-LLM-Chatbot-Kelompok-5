@@ -125,12 +125,12 @@ LLM_COLORS = {
     "anthropic/claude-3-haiku": "#e89b7a",
     "anthropic/claude-3-opus": "#c85d3c",
 
-    # Mistral models (verify names at OpenRouter)
-    "mistralai/mistral-small-latest": "#b967ff",
-    "mistralai/mistral-medium-latest": "#9b4fd9",
-    "mistralai/mistral-large-latest": "#aa5fe5",
-    "mistralai/mixtral-8x7b-instruct-v0.1": "#8a3ec9",
-    "mistralai/mistral-7b-instruct-v0.2": "#c98aff",
+    # Mistral models (verified from OpenRouter 2026-06-02)
+    "mistralai/mistral-small-2603": "#b967ff",
+    "mistralai/mistral-medium-3-5": "#9b4fd9",
+    "mistralai/mistral-large-latest": "#aa5fe5",  # Unverified - update if available
+    "mistralai/mixtral-8x7b-instruct-v0.1": "#8a3ec9",  # Unverified - update if available
+    "mistralai/mistral-7b-instruct-v0.2": "#c98aff",  # Legacy - keep for old evals
 
     # Meta models
     "meta-llama/llama-3-70b-instruct": "#0668e1",

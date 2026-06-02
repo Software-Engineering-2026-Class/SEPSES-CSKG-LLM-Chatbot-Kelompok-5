@@ -395,8 +395,7 @@ def _render_sidebar() -> str:
             unsafe_allow_html=True
         )
         # OpenRouter model options
-        # NOTE: Verify model names at https://openrouter.ai/models
-        # OpenRouter typically uses versioned model names (e.g., -v0.2, -latest)
+        # Verified model names from https://openrouter.ai/models
         available_models = [
             "openai/gpt-4o-mini",
             "openai/gpt-4o",
@@ -404,9 +403,8 @@ def _render_sidebar() -> str:
             "google/gemini-1.5-pro",
             "anthropic/claude-3.5-sonnet",
             "anthropic/claude-3-haiku",
-            "mistralai/mistral-small-latest",    # Verified: https://openrouter.ai/models
-            "mistralai/mistral-large-latest",    # Verified: https://openrouter.ai/models
-            "mistralai/mixtral-8x7b-instruct-v0.1",  # Check OpenRouter for current version
+            "mistralai/mistral-small-2603",      # Verified: OpenRouter 2026-06-02
+            "mistralai/mistral-medium-3-5",      # Verified: OpenRouter 2026-06-02
             "meta-llama/llama-3-70b-instruct",
         ]
 
