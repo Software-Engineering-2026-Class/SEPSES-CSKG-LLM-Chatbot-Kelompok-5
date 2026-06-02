@@ -114,9 +114,9 @@ class RagPipeline:
                 "answer": (
                     f"⚠️ **Pipeline Error**: {str(exc)}\n\n"
                     f"Pastikan:\n"
-                    f"- File `.env` sudah dikonfigurasi dengan API key\n"
-                    f"- Ollama berjalan (jika menggunakan Mistral)\n"
-                    f"- Koneksi internet tersedia untuk SPARQL endpoint"
+                    f"- File `.env` sudah dikonfigurasi dengan OPENROUTER_API_KEY\n"
+                    f"- Koneksi internet tersedia untuk OpenRouter API dan SPARQL endpoint\n"
+                    f"- Model yang dipilih tersedia di OpenRouter"
                 ),
                 "context":     "",
                 "sparql_used": "",

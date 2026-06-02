@@ -142,8 +142,16 @@ def render_chat_page() -> None:
 
     with ctrl_col2:
         llm_label = {
-            "gpt-4o-mini": "GPT-4o-mini (OpenAI)",
-            "mistral": "Mistral-7B (Ollama)",
+            # OpenRouter format models
+            "openai/gpt-4o-mini": "GPT-4o Mini",
+            "openai/gpt-4o": "GPT-4o",
+            "google/gemini-2.0-flash-exp": "Gemini 2.0 Flash",
+            "google/gemini-1.5-pro": "Gemini 1.5 Pro",
+            "anthropic/claude-3.5-sonnet": "Claude 3.5 Sonnet",
+            "anthropic/claude-3-haiku": "Claude 3 Haiku",
+            "mistralai/mistral-small-2603": "Mistral Small",
+            "mistralai/mistral-medium-3-5": "Mistral Medium",
+            "meta-llama/llama-3-70b-instruct": "Llama 3 70B",
         }
         current_llm = st.session_state.selected_llm
         st.markdown(

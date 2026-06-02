@@ -524,14 +524,6 @@ def _render_settings_page() -> None:
         if new_endpoint != st.session_state.sparql_endpoint:
             st.session_state.sparql_endpoint = new_endpoint
 
-        new_ollama = st.text_input(
-            "Ollama Model",
-            value=st.session_state.ollama_model,
-            help="Model name untuk Ollama (e.g. mistral, llama3)",
-        )
-        if new_ollama != st.session_state.ollama_model:
-            st.session_state.ollama_model = new_ollama
-
         top_k = st.slider(
             "Top-K Retrieval",
             min_value=1, max_value=20,
@@ -540,11 +532,17 @@ def _render_settings_page() -> None:
         )
         st.session_state.top_k = top_k
 
+        st.subheader("Active Model")
+        st.markdown(
+            f"**Current LLM**: `{st.session_state.selected_llm}`",
+        )
+        st.caption("Change model using the sidebar selector")
+
     with col2:
         st.subheader("API Key Status")
-        has_openai = bool(os.getenv("OPENAI_API_KEY"))
+        has_openrouter = bool(os.getenv("OPENROUTER_API_KEY"))
         st.markdown(
-            f"**OpenAI API Key**: {'✅ Configured' if has_openai else '❌ Not configured'}",
+            f"**OpenRouter API Key**: {'✅ Configured' if has_openrouter else '❌ Not configured'}",
         )
         st.info(
             "API keys dikelola via file `.env`. "
