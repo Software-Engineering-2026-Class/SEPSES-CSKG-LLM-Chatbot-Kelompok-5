@@ -197,7 +197,7 @@ def render_chat_page() -> None:
             f"<div style='background:rgba(0,255,136,0.05); border:1px solid rgba(0,255,136,0.15); "
             f"border-radius:12px; padding:1.2rem 1.5rem; margin-bottom:1rem;'>"
             f"<div style='font-weight:600; color:#00ff88; margin-bottom:0.6rem;'>"
-            f"{cfg['icon']} {mode}</div>"
+            f"{cfg.get('icon', '🛡️')} {mode}</div>"            
             f"<div style='font-size:0.85rem; color:#8899b8; margin-bottom:0.8rem;'>{cfg['desc']}</div>"
             f"<div style='font-size:0.78rem; color:#6b7a99; margin-bottom:0.4rem;'>Quick examples:</div>",
             unsafe_allow_html=True
