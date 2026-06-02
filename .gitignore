@@ -248,8 +248,8 @@ ollama_data/
 !.streamlit/config.toml.example
 
 # ---- Claude Code ----
-# Claude Code cache (optional - uncomment to ignore)
-# .claude/
+# Claude Code cache and local settings
+.claude/
 
 # ---- Misc ----
 # Backup files

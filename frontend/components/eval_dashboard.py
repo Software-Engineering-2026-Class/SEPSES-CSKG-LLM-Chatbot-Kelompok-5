@@ -106,8 +106,26 @@ MOCK_EVAL_RESULTS = {
 }
 
 LLM_COLORS = {
+    # Legacy names (backward compatibility)
     "gpt-4o-mini": "#00b4ff",
-    "mistral":     "#b967ff",
+    "gpt-4o": "#0066cc",
+    "mistral": "#b967ff",
+    "gemini": "#4285f4",
+
+    # OpenRouter format names
+    "openai/gpt-4o-mini": "#00b4ff",
+    "openai/gpt-4o": "#0066cc",
+    "openai/gpt-3.5-turbo": "#00aaff",
+    "google/gemini-2.0-flash": "#4285f4",
+    "google/gemini-1.5-pro": "#34a853",
+    "google/gemini-1.5-flash": "#5ab3f9",
+    "anthropic/claude-3.5-sonnet": "#d97757",
+    "anthropic/claude-3-haiku": "#e89b7a",
+    "anthropic/claude-3-opus": "#c85d3c",
+    "mistralai/mistral-7b-instruct": "#b967ff",
+    "mistralai/mixtral-8x7b-instruct": "#9b4fd9",
+    "meta-llama/llama-3-70b-instruct": "#0668e1",
+    "meta-llama/llama-3-8b-instruct": "#4a9ff5",
 }
 
 def _load_eval_results() -> Optional[Dict]:
@@ -273,12 +291,19 @@ def _render_overview_charts(summaries: List[Dict]) -> None:
             values = [s[k] for k in radar_keys]
             values.append(values[0])  # close polygon
             cats = categories + [categories[0]]
+            # Convert hex color to RGBA with alpha for fill
+            base_color = LLM_COLORS.get(s["llm_name"], "#4a6080")
+            # Convert hex to RGB and add alpha
+            hex_color = base_color.lstrip('#')
+            r, g, b = int(hex_color[0:2], 16), int(hex_color[2:4], 16), int(hex_color[4:6], 16)
+            rgba_fill = f"rgba({r}, {g}, {b}, 0.19)"  # 0x30 hex = ~0.19 alpha
+
             fig_radar.add_trace(go.Scatterpolar(
                 r=values,
                 theta=cats,
                 fill="toself",
-                fillcolor=LLM_COLORS.get(s["llm_name"], "#4a6080") + "30",
-                line=dict(color=LLM_COLORS.get(s["llm_name"], "#4a6080"), width=2),
+                fillcolor=rgba_fill,
+                line=dict(color=base_color, width=2),
                 name=s["llm_name"],
             ))
 
