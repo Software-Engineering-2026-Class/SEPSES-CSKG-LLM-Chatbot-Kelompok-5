@@ -330,7 +330,7 @@ def _init_session_state() -> None:
         "current_page": "Chat",
         # Chat
         "chat_history": [],
-        "selected_llm": "gpt-4o-mini",
+        "selected_llm": "openai/gpt-4o-mini",  # OpenRouter format
         "chat_mode": "Security Analysis",
         # Log Analysis
         "ingested_logs": [],
@@ -344,7 +344,6 @@ def _init_session_state() -> None:
         "eval_running": False,
         # Settings
         "sparql_endpoint": os.getenv("SPARQL_ENDPOINT", "https://w3id.org/sepses/sparql"),
-        "ollama_model": os.getenv("OLLAMA_MODEL", "mistral"),
         "top_k": int(os.getenv("TOP_K_RETRIEVAL", "5")),
     }
     for key, default_val in defaults.items():
@@ -395,10 +394,29 @@ def _render_sidebar() -> str:
             "letter-spacing:0.1em; margin-bottom:0.5rem;'>Active LLM</p>",
             unsafe_allow_html=True
         )
+        # OpenRouter model options
+        available_models = [
+            "openai/gpt-4o-mini",
+            "openai/gpt-4o",
+            "google/gemini-2.0-flash",
+            "google/gemini-1.5-pro",
+            "anthropic/claude-3.5-sonnet",
+            "anthropic/claude-3-haiku",
+            "mistralai/mistral-7b-instruct",
+            "meta-llama/llama-3-70b-instruct",
+        ]
+
+        # Legacy mapping for backward compatibility
+        if st.session_state.selected_llm in ["gpt-4o-mini", "mistral"]:
+            if st.session_state.selected_llm == "gpt-4o-mini":
+                st.session_state.selected_llm = "openai/gpt-4o-mini"
+            elif st.session_state.selected_llm == "mistral":
+                st.session_state.selected_llm = "mistralai/mistral-7b-instruct"
+
         st.session_state.selected_llm = st.selectbox(
             label="llm_select",
-            options=["gpt-4o-mini", "mistral"],
-            index=0 if st.session_state.selected_llm == "gpt-4o-mini" else 1,
+            options=available_models,
+            index=0 if st.session_state.selected_llm not in available_models else available_models.index(st.session_state.selected_llm),
             label_visibility="collapsed",
         )
 
@@ -416,7 +434,7 @@ def _render_sidebar() -> str:
             unsafe_allow_html=True
         )
 
-        llm_status = "🟢" if os.getenv("OPENAI_API_KEY") else "🔴"
+        llm_status = "🟢" if os.getenv("OPENROUTER_API_KEY") else "🔴"
         st.markdown(
             f"<div style='font-size:0.82rem; padding:0.2rem 0;'>"
             f"{llm_status} LLM Connector</div>",

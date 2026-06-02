@@ -5,12 +5,14 @@ version: '3.9'
 # ============================================================
 # Services:
 #   fuseki  : Apache Jena Fuseki (SPARQL triplestore lokal)
-#   ollama  : Ollama untuk Mistral-7B lokal
 #   chatbot : Streamlit application
 #
+# Note: LLM inference now uses OpenRouter API (cloud-based)
+#       No local LLM server needed.
+#
 # Penggunaan:
-#   docker compose up fuseki ollama   # Hanya infrastruktur
-#   docker compose up                 # Semua services
+#   docker compose up fuseki   # Hanya SPARQL endpoint
+#   docker compose up          # Semua services
 # ============================================================
 
 services:
@@ -33,24 +35,6 @@ services:
       timeout: 10s
       retries: 3
 
-  # ---- Ollama (Local LLM Server) ----
-  ollama:
-    image: ollama/ollama:latest
-    container_name: sepses_ollama
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-    restart: unless-stopped
-    # GPU support (uncomment jika ada NVIDIA GPU):
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: 1
-    #           capabilities: [gpu]
-
   # ---- Streamlit Chatbot Application ----
   chatbot:
     build:
@@ -64,19 +48,14 @@ services:
     environment:
       - SPARQL_ENDPOINT=http://fuseki:3030/sepses/sparql
       - FUSEKI_ENDPOINT=http://fuseki:3030/sepses/sparql
-      - OLLAMA_BASE_URL=http://ollama:11434
       - CHROMA_DB_PATH=/app/data/chroma_db
     volumes:
       - ./data:/app/data
     depends_on:
       fuseki:
         condition: service_healthy
-      ollama:
-        condition: service_started
     restart: unless-stopped
 
 volumes:
   fuseki_data:
-    driver: local
-  ollama_data:
     driver: local

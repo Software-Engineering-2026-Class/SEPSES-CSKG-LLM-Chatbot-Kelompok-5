@@ -5,8 +5,8 @@ Tanggung Jawab  : Satya Wira Pramudita (Evaluator & Log Dev)
 Branch          : feature/eval-log-dev
 
 Penggunaan:
-    python evaluation/run_eval.py --llm gpt4o-mini mistral --category all
-    python evaluation/run_eval.py --llm gpt4o-mini --category kg_qa --output ./results/
+    python evaluation/run_eval.py --llm openai/gpt-4o-mini google/gemini-2.0-flash --category all
+    python evaluation/run_eval.py --llm openai/gpt-4o-mini --category kg_qa --output ./results/
 
 Catatan:
     Script ini memerlukan RAG pipeline (rag_logic/) sudah siap.
@@ -34,11 +34,21 @@ from evaluation.grader import EvalResult, EvalSummary, Grader
 logger = structlog.get_logger(__name__)
 
 # ============================================================
-# LLM Name Constants
+# LLM Name Constants (OpenRouter format)
 # ============================================================
-LLM_GPT4O_MINI = "gpt-4o-mini"
-LLM_MISTRAL = "mistral"
-SUPPORTED_LLMS = [LLM_GPT4O_MINI, LLM_MISTRAL]
+# Default models for evaluation - can be overridden via CLI
+DEFAULT_MODELS = [
+    "openai/gpt-4o-mini",           # OpenAI GPT-4o mini
+    "google/gemini-2.0-flash",      # Google Gemini 2.0 Flash
+]
+
+# Legacy name mapping for backward compatibility
+LEGACY_MODEL_MAPPING = {
+    "gpt4o-mini": "openai/gpt-4o-mini",
+    "gpt-4o-mini": "openai/gpt-4o-mini",
+    "mistral": "mistralai/mistral-7b-instruct",
+    "gemini": "google/gemini-2.0-flash",
+}
 
 
 def _get_mock_answer_generator(llm_name: str):
@@ -183,9 +193,13 @@ def main() -> None:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Contoh:
-  python evaluation/run_eval.py --llm gpt4o-mini mistral
-  python evaluation/run_eval.py --llm gpt4o-mini --category kg_qa
-  python evaluation/run_eval.py --llm mistral --mock --output ./evaluation/results/
+  python evaluation/run_eval.py --llm openai/gpt-4o-mini google/gemini-2.0-flash
+  python evaluation/run_eval.py --llm openai/gpt-4o-mini --category kg_qa
+  python evaluation/run_eval.py --llm anthropic/claude-3.5-sonnet --mock --output ./evaluation/results/
+
+Model format: provider/model-name (OpenRouter format)
+Contoh model: openai/gpt-4o-mini, google/gemini-2.0-flash, anthropic/claude-3.5-sonnet
+Legacy names (gpt4o-mini, mistral) juga didukung untuk backward compatibility.
         """
     )
 
@@ -193,8 +207,12 @@ Contoh:
         "--llm",
         nargs="+",
         required=True,
-        choices=SUPPORTED_LLMS,
-        help=f"LLM yang akan dievaluasi. Pilihan: {SUPPORTED_LLMS}"
+        help=(
+            "LLM yang akan dievaluasi dalam format OpenRouter (provider/model-name). "
+            f"Contoh: {', '.join(DEFAULT_MODELS)}. "
+            "Lihat https://openrouter.ai/models untuk daftar lengkap. "
+            "Legacy names juga didukung untuk backward compatibility."
+        )
     )
     parser.add_argument(
         "--category",
@@ -249,6 +267,12 @@ Contoh:
     summaries = []
 
     for llm_name in args.llm:
+        # Map legacy model names to OpenRouter format
+        original_name = llm_name
+        if llm_name.lower() in LEGACY_MODEL_MAPPING:
+            llm_name = LEGACY_MODEL_MAPPING[llm_name.lower()]
+            logger.info("legacy_model_mapped", original=original_name, mapped=llm_name)
+
         print(f"\n🔄 Evaluating: {llm_name} ...")
 
         # Pilih answer generator

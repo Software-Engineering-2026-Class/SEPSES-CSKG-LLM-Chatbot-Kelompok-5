@@ -7,7 +7,7 @@ Standar         : IEEE 829, ISO/IEC 12207
 
 Deskripsi:
     Automated evaluation pipeline menggunakan pendekatan "LLM-as-a-Judge".
-    Membandingkan performa dua LLM (GPT-4o-mini vs Mistral-7B) pada
+    Membandingkan performa berbagai LLM via OpenRouter pada
     benchmark_dataset.json menggunakan metrik:
 
     1. Faithfulness    : Apakah jawaban didukung oleh retrieved context?
@@ -189,17 +189,22 @@ class Grader:
         self._results_dir = results_dir or os.getenv(
             "EVAL_RESULTS_DIR", "./evaluation/results"
         )
-        self._judge_model = judge_model or os.getenv("JUDGE_MODEL", "gpt-4o-mini")
+        self._judge_model = judge_model or os.getenv("JUDGE_MODEL", "openai/gpt-4o-mini")
 
         # Validasi API key
-        api_key = os.getenv("OPENAI_API_KEY")
+        api_key = os.getenv("OPENROUTER_API_KEY")
         if not api_key:
             raise ValueError(
-                "OPENAI_API_KEY tidak ditemukan di environment variables. "
-                "Salin .env.example ke .env dan isi API key."
+                "OPENROUTER_API_KEY tidak ditemukan di environment variables. "
+                "Dapatkan API key dari https://openrouter.ai/keys dan "
+                "salin .env.example ke .env dan isi API key."
             )
 
-        self._judge_client = OpenAI(api_key=api_key)
+        # Initialize OpenAI client with OpenRouter endpoint
+        self._judge_client = OpenAI(
+            base_url="https://openrouter.ai/api/v1",
+            api_key=api_key
+        )
         self._benchmark: List[Dict[str, Any]] = []
 
         # Buat direktori hasil jika belum ada
