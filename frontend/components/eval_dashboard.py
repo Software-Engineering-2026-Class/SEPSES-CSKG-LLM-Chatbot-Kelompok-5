@@ -113,19 +113,26 @@ LLM_COLORS = {
     "gemini": "#4285f4",
 
     # OpenRouter format names
+    # NOTE: These model names should match what's available at https://openrouter.ai/models
     "openai/gpt-4o-mini": "#00b4ff",
     "openai/gpt-4o": "#0066cc",
     "openai/gpt-3.5-turbo": "#00aaff",
     "google/gemini-2.0-flash": "#4285f4",
+    "google/gemini-2.0-flash-exp": "#4285f4",
     "google/gemini-1.5-pro": "#34a853",
     "google/gemini-1.5-flash": "#5ab3f9",
     "anthropic/claude-3.5-sonnet": "#d97757",
     "anthropic/claude-3-haiku": "#e89b7a",
     "anthropic/claude-3-opus": "#c85d3c",
-    "mistralai/mistral-7b-instruct": "#b967ff",
-    "mistralai/mixtral-8x7b-instruct": "#9b4fd9",
-    "mistralai/mixtral-8x22b-instruct": "#8a3ec9",
-    "mistralai/mistral-large": "#aa5fe5",
+
+    # Mistral models (verify names at OpenRouter)
+    "mistralai/mistral-small-latest": "#b967ff",
+    "mistralai/mistral-medium-latest": "#9b4fd9",
+    "mistralai/mistral-large-latest": "#aa5fe5",
+    "mistralai/mixtral-8x7b-instruct-v0.1": "#8a3ec9",
+    "mistralai/mistral-7b-instruct-v0.2": "#c98aff",
+
+    # Meta models
     "meta-llama/llama-3-70b-instruct": "#0668e1",
     "meta-llama/llama-3-8b-instruct": "#4a9ff5",
 }
