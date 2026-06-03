@@ -1,0 +1,271 @@
+# ============================================================
+# SEPSES CSKG LLM Chatbot - Git Ignore Configuration
+# ============================================================
+
+# ---- CRITICAL: Environment & Secrets ----
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+credentials.json
+secrets/
+.secrets
+
+# Keep template files
+!.env.example
+
+# ---- Python ----
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Translations
+*.mo
+*.pot
+
+# Flask/Django stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+.pybuilder/
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# poetry
+poetry.lock
+
+# pdm
+.pdm.toml
+
+# PEP 582
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.venv
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# Cython debug symbols
+cython_debug/
+
+# ---- Project-Specific Data ----
+# ChromaDB vector database (regenerable from logs)
+data/chroma_db/
+data/chroma_db.sqlite3
+
+# Evaluation results (output files)
+evaluation/results/*.json
+evaluation/results/*.csv
+evaluation/results/**/*.json
+evaluation/results/**/*.csv
+
+# Keep result directory structure
+!evaluation/results/.gitkeep
+
+# Log files
+*.log
+logs/
+*.log.*
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+*.swp
+*.swo
+*~
+
+# Large data files (uncomment if needed)
+# data/cskg_dumps/*.ttl
+# data/cskg_dumps/*.nt
+# data/cskg_dumps/*.rdf
+
+# ---- IDE / Editor ----
+# VSCode
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json.example
+
+# PyCharm / IntelliJ
+.idea/
+*.iml
+*.ipr
+*.iws
+.idea_modules/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+
+# ---- OS-Specific ----
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+.directory
+.Trash-*
+.nfs*
+
+# ---- Docker ----
+docker-compose.override.yml
+.docker/
+
+# Docker volumes (local data)
+fuseki_data/
+ollama_data/
+
+# ---- Streamlit ----
+.streamlit/secrets.toml
+
+# Keep config template
+!.streamlit/config.toml.example
+
+# ---- Claude Code ----
+# Claude Code cache and local settings
+.claude/
+
+# ---- Misc ----
+# Backup files
+*.backup
+*.bkp
+
+# Archive files (if generated)
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# Node modules (if any frontend tools)
+node_modules/
+
+# Package manager locks (keep requirements.txt only)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml

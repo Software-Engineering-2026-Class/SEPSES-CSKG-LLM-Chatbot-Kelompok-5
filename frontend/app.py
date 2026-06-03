@@ -330,7 +330,7 @@ def _init_session_state() -> None:
         "current_page": "Chat",
         # Chat
         "chat_history": [],
-        "selected_llm": "gpt-4o-mini",
+        "selected_llm": "openai/gpt-4o-mini",  # OpenRouter format
         "chat_mode": "Security Analysis",
         # Log Analysis
         "ingested_logs": [],
@@ -344,7 +344,6 @@ def _init_session_state() -> None:
         "eval_running": False,
         # Settings
         "sparql_endpoint": os.getenv("SPARQL_ENDPOINT", "https://w3id.org/sepses/sparql"),
-        "ollama_model": os.getenv("OLLAMA_MODEL", "mistral"),
         "top_k": int(os.getenv("TOP_K_RETRIEVAL", "5")),
     }
     for key, default_val in defaults.items():
@@ -395,10 +394,31 @@ def _render_sidebar() -> str:
             "letter-spacing:0.1em; margin-bottom:0.5rem;'>Active LLM</p>",
             unsafe_allow_html=True
         )
+        # OpenRouter model options
+        # Verified model names from https://openrouter.ai/models
+        available_models = [
+            "openai/gpt-4o-mini",
+            "openai/gpt-4o",
+            "google/gemini-flash-latest",
+            "google/gemini-1.5-pro",
+            "anthropic/claude-3.5-sonnet",
+            "anthropic/claude-3-haiku",
+            "mistralai/mistral-small-2603",      # Verified: OpenRouter 2026-06-02
+            "mistralai/mistral-medium-3-5",      # Verified: OpenRouter 2026-06-02
+            "meta-llama/llama-3-70b-instruct",
+        ]
+
+        # Legacy mapping for backward compatibility
+        if st.session_state.selected_llm in ["gpt-4o-mini", "mistral"]:
+            if st.session_state.selected_llm == "gpt-4o-mini":
+                st.session_state.selected_llm = "openai/gpt-4o-mini"
+            elif st.session_state.selected_llm == "mistral":
+                st.session_state.selected_llm = "mistralai/mistral-7b-instruct"
+
         st.session_state.selected_llm = st.selectbox(
             label="llm_select",
-            options=["gpt-4o-mini", "mistral"],
-            index=0 if st.session_state.selected_llm == "gpt-4o-mini" else 1,
+            options=available_models,
+            index=0 if st.session_state.selected_llm not in available_models else available_models.index(st.session_state.selected_llm),
             label_visibility="collapsed",
         )
 
@@ -416,7 +436,7 @@ def _render_sidebar() -> str:
             unsafe_allow_html=True
         )
 
-        llm_status = "🟢" if os.getenv("OPENAI_API_KEY") else "🔴"
+        llm_status = "🟢" if os.getenv("OPENROUTER_API_KEY") else "🔴"
         st.markdown(
             f"<div style='font-size:0.82rem; padding:0.2rem 0;'>"
             f"{llm_status} LLM Connector</div>",
@@ -504,14 +524,6 @@ def _render_settings_page() -> None:
         if new_endpoint != st.session_state.sparql_endpoint:
             st.session_state.sparql_endpoint = new_endpoint
 
-        new_ollama = st.text_input(
-            "Ollama Model",
-            value=st.session_state.ollama_model,
-            help="Model name untuk Ollama (e.g. mistral, llama3)",
-        )
-        if new_ollama != st.session_state.ollama_model:
-            st.session_state.ollama_model = new_ollama
-
         top_k = st.slider(
             "Top-K Retrieval",
             min_value=1, max_value=20,
@@ -520,11 +532,17 @@ def _render_settings_page() -> None:
         )
         st.session_state.top_k = top_k
 
+        st.subheader("Active Model")
+        st.markdown(
+            f"**Current LLM**: `{st.session_state.selected_llm}`",
+        )
+        st.caption("Change model using the sidebar selector")
+
     with col2:
         st.subheader("API Key Status")
-        has_openai = bool(os.getenv("OPENAI_API_KEY"))
+        has_openrouter = bool(os.getenv("OPENROUTER_API_KEY"))
         st.markdown(
-            f"**OpenAI API Key**: {'✅ Configured' if has_openai else '❌ Not configured'}",
+            f"**OpenRouter API Key**: {'✅ Configured' if has_openrouter else '❌ Not configured'}",
         )
         st.info(
             "API keys dikelola via file `.env`. "

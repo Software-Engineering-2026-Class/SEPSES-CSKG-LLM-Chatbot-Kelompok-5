@@ -106,8 +106,34 @@ MOCK_EVAL_RESULTS = {
 }
 
 LLM_COLORS = {
+    # Legacy names (backward compatibility)
     "gpt-4o-mini": "#00b4ff",
-    "mistral":     "#b967ff",
+    "gpt-4o": "#0066cc",
+    "mistral": "#b967ff",
+    "gemini": "#4285f4",
+
+    # OpenRouter format names
+    # NOTE: These model names should match what's available at https://openrouter.ai/models
+    "openai/gpt-4o-mini": "#00b4ff",
+    "openai/gpt-4o": "#0066cc",
+    "openai/gpt-3.5-turbo": "#00aaff",
+    "google/gemini-flash-latest": "#4285f4",
+    "google/gemini-1.5-pro": "#34a853",
+    "google/gemini-1.5-flash": "#5ab3f9",
+    "anthropic/claude-3.5-sonnet": "#d97757",
+    "anthropic/claude-3-haiku": "#e89b7a",
+    "anthropic/claude-3-opus": "#c85d3c",
+
+    # Mistral models (verified from OpenRouter 2026-06-02)
+    "mistralai/mistral-small-2603": "#b967ff",
+    "mistralai/mistral-medium-3-5": "#9b4fd9",
+    "mistralai/mistral-large-latest": "#aa5fe5",  # Unverified - update if available
+    "mistralai/mixtral-8x7b-instruct-v0.1": "#8a3ec9",  # Unverified - update if available
+    "mistralai/mistral-7b-instruct-v0.2": "#c98aff",  # Legacy - keep for old evals
+
+    # Meta models
+    "meta-llama/llama-3-70b-instruct": "#0668e1",
+    "meta-llama/llama-3-8b-instruct": "#4a9ff5",
 }
 
 def _load_eval_results() -> Optional[Dict]:
@@ -115,9 +141,17 @@ def _load_eval_results() -> Optional[Dict]:
     Load hasil evaluasi dari results directory, atau gunakan mock.
 
     Returns:
-        Dict dengan eval results, atau MOCK_EVAL_RESULTS jika belum ada.
+        Dict dengan eval results, atau None jika belum ada.
     """
-    results_dir = Path(os.getenv("EVAL_RESULTS_DIR", "./evaluation/results"))
+    # Get results directory path from env or use default
+    results_dir_str = os.getenv("EVAL_RESULTS_DIR", "./evaluation/results")
+    results_dir = Path(results_dir_str)
+
+    # If path is relative, resolve it relative to project root
+    if not results_dir.is_absolute():
+        # Project root is 2 levels up from this file (frontend/components/)
+        project_root = Path(__file__).parent.parent.parent
+        results_dir = project_root / results_dir_str.lstrip("./")
 
     if results_dir.exists():
         json_files = sorted(results_dir.glob("eval_results_*.json"), reverse=True)
@@ -125,8 +159,10 @@ def _load_eval_results() -> Optional[Dict]:
             try:
                 with open(json_files[0], "r", encoding="utf-8") as f:
                     return json.load(f)
-            except Exception:
-                pass
+            except Exception as e:
+                # Log error but don't crash
+                import sys
+                print(f"Error loading eval results from {json_files[0]}: {e}", file=sys.stderr)
 
     return None
 def render_eval_page() -> None:
@@ -273,12 +309,19 @@ def _render_overview_charts(summaries: List[Dict]) -> None:
             values = [s[k] for k in radar_keys]
             values.append(values[0])  # close polygon
             cats = categories + [categories[0]]
+            # Convert hex color to RGBA with alpha for fill
+            base_color = LLM_COLORS.get(s["llm_name"], "#4a6080")
+            # Convert hex to RGB and add alpha
+            hex_color = base_color.lstrip('#')
+            r, g, b = int(hex_color[0:2], 16), int(hex_color[2:4], 16), int(hex_color[4:6], 16)
+            rgba_fill = f"rgba({r}, {g}, {b}, 0.19)"  # 0x30 hex = ~0.19 alpha
+
             fig_radar.add_trace(go.Scatterpolar(
                 r=values,
                 theta=cats,
                 fill="toself",
-                fillcolor=LLM_COLORS.get(s["llm_name"], "#4a6080") + "30",
-                line=dict(color=LLM_COLORS.get(s["llm_name"], "#4a6080"), width=2),
+                fillcolor=rgba_fill,
+                line=dict(color=base_color, width=2),
                 name=s["llm_name"],
             ))
 

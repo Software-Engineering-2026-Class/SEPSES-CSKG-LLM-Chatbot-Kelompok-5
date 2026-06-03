@@ -142,8 +142,16 @@ def render_chat_page() -> None:
 
     with ctrl_col2:
         llm_label = {
-            "gpt-4o-mini": "GPT-4o-mini (OpenAI)",
-            "mistral": "Mistral-7B (Ollama)",
+            # OpenRouter format models
+            "openai/gpt-4o-mini": "GPT-4o Mini",
+            "openai/gpt-4o": "GPT-4o",
+            "google/gemini-flash-latest": "Gemini Flash",
+            "google/gemini-1.5-pro": "Gemini 1.5 Pro",
+            "anthropic/claude-3.5-sonnet": "Claude 3.5 Sonnet",
+            "anthropic/claude-3-haiku": "Claude 3 Haiku",
+            "mistralai/mistral-small-2603": "Mistral Small",
+            "mistralai/mistral-medium-3-5": "Mistral Medium",
+            "meta-llama/llama-3-70b-instruct": "Llama 3 70B",
         }
         current_llm = st.session_state.selected_llm
         st.markdown(
@@ -197,7 +205,7 @@ def render_chat_page() -> None:
             f"<div style='background:rgba(0,255,136,0.05); border:1px solid rgba(0,255,136,0.15); "
             f"border-radius:12px; padding:1.2rem 1.5rem; margin-bottom:1rem;'>"
             f"<div style='font-weight:600; color:#00ff88; margin-bottom:0.6rem;'>"
-            f"{cfg['icon']} {mode}</div>"
+            f"{cfg.get('icon', '🛡️')} {mode}</div>"            
             f"<div style='font-size:0.85rem; color:#8899b8; margin-bottom:0.8rem;'>{cfg['desc']}</div>"
             f"<div style='font-size:0.78rem; color:#6b7a99; margin-bottom:0.4rem;'>Quick examples:</div>",
             unsafe_allow_html=True

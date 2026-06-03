@@ -8,7 +8,7 @@ Sistem chatbot berbasis LLM yang terintegrasi dengan **SEPSES Cybersecurity Know
 
 - SPARQL query ke SEPSES KG (CVE, CWE, CAPEC, CPE, ATT&CK)
 - Semantic search atas log keamanan lokal via ChromaDB
-- Multi-LLM evaluation (GPT-4o-mini vs Mistral-7B)
+- Multi-LLM evaluation via OpenRouter (akses ke 100+ model dari berbagai provider)
 
 ## Anggota Kelompok:
 
@@ -46,7 +46,8 @@ RAG Pipeline Orchestrator
             Local Security Logs (Snort / Syslog / Windows Event)
     │
     ▼
-LLM Generator: GPT-4o-mini | Mistral-7B 
+LLM Generator (via OpenRouter API)
+    OpenAI | Google | Anthropic | Meta | Mistral | 100+ models
     │
     ▼
 Response + KG Graph Visualization + Source Citations
@@ -61,7 +62,7 @@ LLM-as-a-Judge Evaluator
 
 ### Prerequisites
 - Python 3.10+
-- (Opsional) Ollama untuk Mistral lokal: [https://ollama.ai](https://ollama.ai)
+- OpenRouter API key: [https://openrouter.ai/keys](https://openrouter.ai/keys)
 - (Opsional) Docker untuk Jena Fuseki lokal
 
 ### 1. Setup Environment
@@ -97,10 +98,10 @@ streamlit run frontend/app.py
 
 ```bash
 # Mock mode (tanpa API key)
-python evaluation/run_eval.py --llm gpt4o-mini mistral --mock
+python evaluation/run_eval.py --llm openai/gpt-4o-mini google/gemini-flash-latest --mock
 
-# Real mode
-python evaluation/run_eval.py --llm gpt4o-mini mistral --category all
+# Real mode dengan berbagai model dari OpenRouter
+python evaluation/run_eval.py --llm openai/gpt-4o-mini anthropic/claude-3.5-sonnet --category all
 ```
 
 ---
@@ -165,7 +166,30 @@ SEPSES-CSKG-LLM-Chatbot/
 | Log Analysis | Upload + analisis Snort/Syslog/Windows Event Log |
 | KG QA | Question-answering langsung atas SEPSES CSKG |
 | Graph Visualization | Visualisasi interaktif relasi entitas KG |
-| Multi-LLM Evaluation | Perbandingan GPT-4o-mini vs Mistral-7B |
+| Multi-LLM Evaluation | Perbandingan berbagai model LLM via OpenRouter |
+
+---
+
+## Mengapa OpenRouter?
+
+Proyek ini menggunakan **OpenRouter** sebagai unified API gateway untuk akses ke 100+ model LLM dari berbagai provider. Keuntungan:
+
+| Keuntungan | Deskripsi |
+|------------|-----------|
+| **Single API** | Satu API key untuk akses semua model (OpenAI, Google, Anthropic, Meta, Mistral, dll.) |
+| **Cost Efficiency** | Harga kompetitif dan transparan, bayar per token tanpa subscription |
+| **Model Flexibility** | Mudah switch antar model tanpa mengubah kode - hanya ganti nama model |
+| **No Infrastructure** | Tidak perlu maintain Ollama server atau GPU lokal |
+| **Automatic Fallback** | Built-in failover ke model alternatif jika model utama down |
+| **Rate Limiting** | Built-in rate limiting dan retry logic |
+
+**Model yang tersedia:**
+- **OpenAI**: gpt-4o, gpt-4o-mini, gpt-3.5-turbo
+- **Google**: gemini-flash-latest, gemini-1.5-pro, gemini-1.5-flash
+- **Anthropic**: claude-3.5-sonnet, claude-3-opus, claude-3-haiku
+- **Meta**: llama-3-70b-instruct, llama-3-8b-instruct
+- **Mistral**: mistral-7b-instruct, mixtral-8x7b-instruct, mixtral-8x22b-instruct
+- Dan 100+ model lainnya: [https://openrouter.ai/models](https://openrouter.ai/models)
 
 ---
 

@@ -1,20 +1,3 @@
-"""
-SEPSES CSKG LLM Chatbot - Benchmark Dataset
-============================================
-Tanggung Jawab  : Satya Wira Pramudita (Evaluator & Log Dev)
-Branch          : feature/eval-log-dev
-
-Format setiap item:
-{
-    "id"              : ID unik pertanyaan,
-    "category"        : "security_analysis" | "log_analysis" | "kg_qa",
-    "question"        : Pertanyaan dalam natural language,
-    "expected_answer" : Jawaban referensi (ground truth),
-    "ground_truth_sparql" : SPARQL query yang harus menghasilkan jawaban (null jika log_analysis),
-    "difficulty"      : "easy" | "medium" | "hard",
-    "notes"           : Catatan evaluator
-}
-"""
 [
   {
     "id": "SA-001",

@@ -52,11 +52,11 @@ class RagPipeline:
         Inisialisasi pipeline dengan lazy-loading semua komponen.
 
         Args:
-            llm_name      : "gpt-4o-mini" | "mistral" | dsb.
+            llm_name      : OpenRouter model name (e.g., "openai/gpt-4o-mini", "google/gemini-flash-latest")
             sparql_client : Pre-initialized SparqlClient (opsional).
             retriever     : Pre-initialized HybridRetriever (opsional).
         """
-        self._llm_name = llm_name or os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+        self._llm_name = llm_name or os.getenv("OPENROUTER_MODEL", "openai/gpt-4o-mini")
         self._llm      = None   # lazy init
         self._client   = sparql_client  # lazy init
         self._retriever = retriever     # lazy init
@@ -114,9 +114,9 @@ class RagPipeline:
                 "answer": (
                     f"⚠️ **Pipeline Error**: {str(exc)}\n\n"
                     f"Pastikan:\n"
-                    f"- File `.env` sudah dikonfigurasi dengan API key\n"
-                    f"- Ollama berjalan (jika menggunakan Mistral)\n"
-                    f"- Koneksi internet tersedia untuk SPARQL endpoint"
+                    f"- File `.env` sudah dikonfigurasi dengan OPENROUTER_API_KEY\n"
+                    f"- Koneksi internet tersedia untuk OpenRouter API dan SPARQL endpoint\n"
+                    f"- Model yang dipilih tersedia di OpenRouter"
                 ),
                 "context":     "",
                 "sparql_used": "",
