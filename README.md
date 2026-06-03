@@ -117,10 +117,9 @@ SEPSES-CSKG-LLM-Chatbot/
 ├── kg_engine/                # [Ajie] Knowledge Graph Engine
 │   ├── sparql_client.py      # SEPSES SPARQL endpoint client
 │   ├── graph_builder.py      # NetworkX graph builder
-│   ├── ontology_schema.txt   # SEPSES ontology schema
+│   ├── ontology_schema.ttl   # SEPSES ontology schema
 │   └── queries/              # SPARQL query templates
 │       ├── vulnerability_lookup.rq
-│       ├── search_by_product.rq
 │       └── get_capec_from_cve.rq
 │
 ├── rag_logic/                # [Fahmi] RAG Pipeline
@@ -206,3 +205,8 @@ Proyek ini menggunakan **OpenRouter** sebagai unified API gateway untuk akses ke
 | CVE Vocabulary   | http://w3id.org/sepses/vocab/ref/cve   |
 | CWE Vocabulary   | http://w3id.org/sepses/vocab/ref/cwe   |
 | CAPEC Vocabulary | http://w3id.org/sepses/vocab/ref/capec |
+| CPE Vocabulary   | http://w3id.org/sepses/vocab/ref/cpe   |
+| CVSS Vocabulary  | http://w3id.org/sepses/vocab/ref/cvss  |
+
+---
+
