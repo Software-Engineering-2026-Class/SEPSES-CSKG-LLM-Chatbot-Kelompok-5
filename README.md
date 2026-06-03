@@ -152,6 +152,8 @@ SEPSES-CSKG-LLM-Chatbot/
     ├── cskg_dumps/           # SEPSES RDF dump files
     ├── chroma_db/            # ChromaDB persistent storage
     └── sample_logs/          # Sample security logs
+        └── snort_sample.log
+
 ```
 
 ---
@@ -208,11 +210,3 @@ Proyek ini menggunakan **OpenRouter** sebagai unified API gateway untuk akses ke
 
 ---
 
-## 🔒 Security Notes
-
-- Semua API key disimpan di `.env` (tidak di-commit ke Git)
-- Lihat `.env.example` untuk template konfigurasi
-- Input sanitization diimplementasikan di setiap endpoint
-- Prepared statements digunakan untuk semua SPARQL queries
-
----
