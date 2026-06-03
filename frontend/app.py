@@ -410,7 +410,7 @@ def _render_sidebar() -> str:
         available_models = [
             "openai/gpt-4o-mini",
             "openai/gpt-4o",
-            "google/gemini-2.0-flash-exp",
+            "google/gemini-flash-latest",
             "google/gemini-1.5-pro",
             "anthropic/claude-3.5-sonnet",
             "anthropic/claude-3-haiku",

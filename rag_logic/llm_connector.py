@@ -7,7 +7,7 @@ SEPSES CSKG LLM Chatbot - LLM Connector
 
     Supported models include:
     - OpenAI: gpt-4o-mini, gpt-4o, gpt-3.5-turbo
-    - Google: gemini-2.0-flash, gemini-1.5-pro, gemini-1.5-flash
+    - Google: gemini-flash-latest, gemini-1.5-pro, gemini-1.5-flash
     - Anthropic: claude-3.5-sonnet, claude-3-haiku, claude-3-opus
     - Meta: llama-3-70b-instruct, llama-3-8b-instruct
     - Mistral: mistral-7b-instruct, mixtral-8x7b-instruct
@@ -114,7 +114,7 @@ class OpenRouterConnector(BaseLLMConnector):
     Model naming format: "provider/model-name"
     Examples:
         - "openai/gpt-4o-mini"
-        - "google/gemini-2.0-flash"
+        - "google/gemini-flash-latest"
         - "anthropic/claude-3.5-sonnet"
         - "meta-llama/llama-3-70b-instruct"
         - "mistralai/mistral-7b-instruct"
@@ -268,7 +268,7 @@ def get_llm_connector(llm_name: str) -> BaseLLMConnector:
         llm_name: Nama model dalam format OpenRouter.
                   Examples:
                   - "openai/gpt-4o-mini"
-                  - "google/gemini-2.0-flash"
+                  - "google/gemini-flash-latest"
                   - "anthropic/claude-3.5-sonnet"
                   - "meta-llama/llama-3-70b-instruct"
                   - "mistralai/mistral-7b-instruct"
@@ -277,7 +277,7 @@ def get_llm_connector(llm_name: str) -> BaseLLMConnector:
                   - "gpt-4o-mini" → "openai/gpt-4o-mini"
                   - "gpt-4o" → "openai/gpt-4o"
                   - "mistral" → "mistralai/mistral-7b-instruct"
-                  - "gemini" → "google/gemini-2.0-flash"
+                  - "gemini" → "google/gemini-flash-latest"
 
     Returns:
         BaseLLMConnector: OpenRouter connector untuk model yang diminta.
@@ -292,8 +292,8 @@ def get_llm_connector(llm_name: str) -> BaseLLMConnector:
         "gpt-3.5-turbo": "openai/gpt-3.5-turbo",
         "mistral": "mistralai/mistral-7b-instruct",
         "mistral-7b": "mistralai/mistral-7b-instruct",
-        "gemini": "google/gemini-2.0-flash",
-        "gemini-flash": "google/gemini-2.0-flash",
+        "gemini": "google/gemini-flash-latest",
+        "gemini-flash": "google/gemini-flash-latest",
         "gemini-pro": "google/gemini-1.5-pro",
         "claude": "anthropic/claude-3.5-sonnet",
         "claude-sonnet": "anthropic/claude-3.5-sonnet",

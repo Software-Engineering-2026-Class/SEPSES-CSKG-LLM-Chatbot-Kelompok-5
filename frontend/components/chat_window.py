@@ -145,7 +145,7 @@ def render_chat_page() -> None:
             # OpenRouter format models
             "openai/gpt-4o-mini": "GPT-4o Mini",
             "openai/gpt-4o": "GPT-4o",
-            "google/gemini-2.0-flash-exp": "Gemini 2.0 Flash",
+            "google/gemini-flash-latest": "Gemini Flash",
             "google/gemini-1.5-pro": "Gemini 1.5 Pro",
             "anthropic/claude-3.5-sonnet": "Claude 3.5 Sonnet",
             "anthropic/claude-3-haiku": "Claude 3 Haiku",

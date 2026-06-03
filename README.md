@@ -98,7 +98,7 @@ streamlit run frontend/app.py
 
 ```bash
 # Mock mode (tanpa API key)
-python evaluation/run_eval.py --llm openai/gpt-4o-mini google/gemini-2.0-flash --mock
+python evaluation/run_eval.py --llm openai/gpt-4o-mini google/gemini-flash-latest --mock
 
 # Real mode dengan berbagai model dari OpenRouter
 python evaluation/run_eval.py --llm openai/gpt-4o-mini anthropic/claude-3.5-sonnet --category all
@@ -117,9 +117,10 @@ SEPSES-CSKG-LLM-Chatbot/
 ├── kg_engine/                # [Ajie] Knowledge Graph Engine
 │   ├── sparql_client.py      # SEPSES SPARQL endpoint client
 │   ├── graph_builder.py      # NetworkX graph builder
-│   ├── ontology_schema.ttl   # SEPSES ontology schema
+│   ├── ontology_schema.txt   # SEPSES ontology schema
 │   └── queries/              # SPARQL query templates
 │       ├── vulnerability_lookup.rq
+│       ├── search_by_product.rq
 │       └── get_capec_from_cve.rq
 │
 ├── rag_logic/                # [Fahmi] RAG Pipeline
@@ -152,6 +153,8 @@ SEPSES-CSKG-LLM-Chatbot/
     ├── cskg_dumps/           # SEPSES RDF dump files
     ├── chroma_db/            # ChromaDB persistent storage
     └── sample_logs/          # Sample security logs
+        └── snort_sample.log
+
 ```
 
 ---
@@ -185,7 +188,7 @@ Proyek ini menggunakan **OpenRouter** sebagai unified API gateway untuk akses ke
 
 **Model yang tersedia:**
 - **OpenAI**: gpt-4o, gpt-4o-mini, gpt-3.5-turbo
-- **Google**: gemini-2.0-flash, gemini-1.5-pro, gemini-1.5-flash
+- **Google**: gemini-flash-latest, gemini-1.5-pro, gemini-1.5-flash
 - **Anthropic**: claude-3.5-sonnet, claude-3-opus, claude-3-haiku
 - **Meta**: llama-3-70b-instruct, llama-3-8b-instruct
 - **Mistral**: mistral-7b-instruct, mixtral-8x7b-instruct, mixtral-8x22b-instruct
@@ -205,14 +208,5 @@ Proyek ini menggunakan **OpenRouter** sebagai unified API gateway untuk akses ke
 | CAPEC Vocabulary | http://w3id.org/sepses/vocab/ref/capec |
 | CPE Vocabulary   | http://w3id.org/sepses/vocab/ref/cpe   |
 | CVSS Vocabulary  | http://w3id.org/sepses/vocab/ref/cvss  |
-
----
-
-## 🔒 Security Notes
-
-- Semua API key disimpan di `.env` (tidak di-commit ke Git)
-- Lihat `.env.example` untuk template konfigurasi
-- Input sanitization diimplementasikan di setiap endpoint
-- Prepared statements digunakan untuk semua SPARQL queries
 
 ---
