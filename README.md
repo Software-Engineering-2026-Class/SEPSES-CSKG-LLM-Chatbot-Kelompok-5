@@ -98,7 +98,7 @@ streamlit run frontend/app.py
 
 ```bash
 # Mock mode (tanpa API key)
-python evaluation/run_eval.py --llm openai/gpt-4o-mini google/gemini-2.0-flash --mock
+python evaluation/run_eval.py --llm openai/gpt-4o-mini google/gemini-flash-latest --mock
 
 # Real mode dengan berbagai model dari OpenRouter
 python evaluation/run_eval.py --llm openai/gpt-4o-mini anthropic/claude-3.5-sonnet --category all
@@ -185,7 +185,7 @@ Proyek ini menggunakan **OpenRouter** sebagai unified API gateway untuk akses ke
 
 **Model yang tersedia:**
 - **OpenAI**: gpt-4o, gpt-4o-mini, gpt-3.5-turbo
-- **Google**: gemini-2.0-flash, gemini-1.5-pro, gemini-1.5-flash
+- **Google**: gemini-flash-latest, gemini-1.5-pro, gemini-1.5-flash
 - **Anthropic**: claude-3.5-sonnet, claude-3-opus, claude-3-haiku
 - **Meta**: llama-3-70b-instruct, llama-3-8b-instruct
 - **Mistral**: mistral-7b-instruct, mixtral-8x7b-instruct, mixtral-8x22b-instruct

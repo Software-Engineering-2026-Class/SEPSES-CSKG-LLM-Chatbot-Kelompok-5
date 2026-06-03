@@ -5,7 +5,7 @@ Tanggung Jawab  : Satya Wira Pramudita (Evaluator & Log Dev)
 Branch          : feature/eval-log-dev
 
 Penggunaan:
-    python evaluation/run_eval.py --llm openai/gpt-4o-mini google/gemini-2.0-flash --category all
+    python evaluation/run_eval.py --llm openai/gpt-4o-mini google/gemini-flash-latest --category all
     python evaluation/run_eval.py --llm openai/gpt-4o-mini --category kg_qa --output ./results/
 
 Catatan:
@@ -39,7 +39,7 @@ logger = structlog.get_logger(__name__)
 # Default models for evaluation - can be overridden via CLI
 DEFAULT_MODELS = [
     "openai/gpt-4o-mini",           # OpenAI GPT-4o mini
-    "google/gemini-2.0-flash",      # Google Gemini 2.0 Flash
+    "google/gemini-flash-latest",   # Google Gemini Flash (latest)
 ]
 
 # Legacy name mapping for backward compatibility
@@ -47,7 +47,7 @@ LEGACY_MODEL_MAPPING = {
     "gpt4o-mini": "openai/gpt-4o-mini",
     "gpt-4o-mini": "openai/gpt-4o-mini",
     "mistral": "mistralai/mistral-7b-instruct",
-    "gemini": "google/gemini-2.0-flash",
+    "gemini": "google/gemini-flash-latest",
 }
 
 
@@ -193,12 +193,12 @@ def main() -> None:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Contoh:
-  python evaluation/run_eval.py --llm openai/gpt-4o-mini google/gemini-2.0-flash
+  python evaluation/run_eval.py --llm openai/gpt-4o-mini google/gemini-flash-latest
   python evaluation/run_eval.py --llm openai/gpt-4o-mini --category kg_qa
   python evaluation/run_eval.py --llm anthropic/claude-3.5-sonnet --mock --output ./evaluation/results/
 
 Model format: provider/model-name (OpenRouter format)
-Contoh model: openai/gpt-4o-mini, google/gemini-2.0-flash, anthropic/claude-3.5-sonnet
+Contoh model: openai/gpt-4o-mini, google/gemini-flash-latest, anthropic/claude-3.5-sonnet
 Legacy names (gpt4o-mini, mistral) juga didukung untuk backward compatibility.
         """
     )

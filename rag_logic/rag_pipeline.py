@@ -52,7 +52,7 @@ class RagPipeline:
         Inisialisasi pipeline dengan lazy-loading semua komponen.
 
         Args:
-            llm_name      : OpenRouter model name (e.g., "openai/gpt-4o-mini", "google/gemini-2.0-flash")
+            llm_name      : OpenRouter model name (e.g., "openai/gpt-4o-mini", "google/gemini-flash-latest")
             sparql_client : Pre-initialized SparqlClient (opsional).
             retriever     : Pre-initialized HybridRetriever (opsional).
         """

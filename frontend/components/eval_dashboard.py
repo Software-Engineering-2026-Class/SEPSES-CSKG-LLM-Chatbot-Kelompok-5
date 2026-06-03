@@ -117,8 +117,7 @@ LLM_COLORS = {
     "openai/gpt-4o-mini": "#00b4ff",
     "openai/gpt-4o": "#0066cc",
     "openai/gpt-3.5-turbo": "#00aaff",
-    "google/gemini-2.0-flash": "#4285f4",
-    "google/gemini-2.0-flash-exp": "#4285f4",
+    "google/gemini-flash-latest": "#4285f4",
     "google/gemini-1.5-pro": "#34a853",
     "google/gemini-1.5-flash": "#5ab3f9",
     "anthropic/claude-3.5-sonnet": "#d97757",
@@ -142,9 +141,17 @@ def _load_eval_results() -> Optional[Dict]:
     Load hasil evaluasi dari results directory, atau gunakan mock.
 
     Returns:
-        Dict dengan eval results, atau MOCK_EVAL_RESULTS jika belum ada.
+        Dict dengan eval results, atau None jika belum ada.
     """
-    results_dir = Path(os.getenv("EVAL_RESULTS_DIR", "./evaluation/results"))
+    # Get results directory path from env or use default
+    results_dir_str = os.getenv("EVAL_RESULTS_DIR", "./evaluation/results")
+    results_dir = Path(results_dir_str)
+
+    # If path is relative, resolve it relative to project root
+    if not results_dir.is_absolute():
+        # Project root is 2 levels up from this file (frontend/components/)
+        project_root = Path(__file__).parent.parent.parent
+        results_dir = project_root / results_dir_str.lstrip("./")
 
     if results_dir.exists():
         json_files = sorted(results_dir.glob("eval_results_*.json"), reverse=True)
@@ -152,8 +159,10 @@ def _load_eval_results() -> Optional[Dict]:
             try:
                 with open(json_files[0], "r", encoding="utf-8") as f:
                     return json.load(f)
-            except Exception:
-                pass
+            except Exception as e:
+                # Log error but don't crash
+                import sys
+                print(f"Error loading eval results from {json_files[0]}: {e}", file=sys.stderr)
 
     return None
 def render_eval_page() -> None:
