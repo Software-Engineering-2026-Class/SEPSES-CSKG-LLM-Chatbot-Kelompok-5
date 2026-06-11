@@ -1,8 +1,5 @@
 """
-SEPSES CSKG LLM Chatbot - Multi-Hop Graph Traversal
-Deskripsi:
-    Implementasi multi-hop reasoning pada SEPSES KG:
-    CVE → CWE → CAPEC → ATT&CK (simulasi via CAPEC name mapping)
+Module untuk multi-hop graph traversal: CVE → CWE → CAPEC → ATT&CK.
 """
 
 from typing import Any, Dict, List, Optional
@@ -28,26 +25,12 @@ CAPEC_TO_ATTCK: Dict[str, List[Dict[str, str]]] = {
 
 
 class MultiHopTraversal:
-    """Multi-hop graph traversal: CVE → CWE → CAPEC → ATT&CK."""
 
     def __init__(self, sparql_client: Optional[SparqlClient] = None) -> None:
-        """
-        Args:
-            sparql_client: SPARQL client. Jika None, dibuat baru.
-        """
         self._client = sparql_client or SparqlClient()
 
     def build_attack_chain(self, cve_id: str) -> Dict[str, Any]:
-        """
-        Build full attack chain: CVE → CWE → CAPEC → ATT&CK.
 
-        Args:
-            cve_id: CVE identifier, e.g. "CVE-2021-44228".
-
-        Returns:
-            Dict dengan keys: cve_id, description, cvss_score, cwes, capecs,
-                              products, found, context_str.
-        """
         cve_id = cve_id.strip().upper()
         logger.info("building_attack_chain", cve_id=cve_id)
 
@@ -97,16 +80,7 @@ class MultiHopTraversal:
         return result
 
     def build_threat_context(self, query: str, top_k: int = 5) -> str:
-        """
-        Build context untuk query yang tidak merujuk CVE spesifik.
-
-        Args:
-            query: User query.
-            top_k: Jumlah CVE yang diambil.
-
-        Returns:
-            str: Formatted context string.
-        """
+        
         import re
         tech_keywords = re.findall(
             r"\b(apache|nginx|log4j|windows|linux|openssh|openssl|wordpress|spring|struts)\b",

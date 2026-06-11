@@ -1,21 +1,5 @@
 """
 SEPSES CSKG LLM Chatbot - RAG Pipeline (Orchestrator)
-
-Deskripsi:
-    Orchestrator utama yang mengintegrasikan seluruh komponen:
-    - KG Engine (SPARQL) → structured context
-    - Log Vector Store (ChromaDB) → log context
-    - NL2SPARQL → query generation
-    - Multi-Hop Traversal → attack chain
-    - LLM Connector → answer generation
-
-    Alur:
-    1. user_query → NL2SPARQL → SPARQL query
-    2. SPARQL query → SparqlClient → KG context
-    3. user_query → HybridRetriever → Log context (jika mode Log Analysis)
-    4. [KG context + Log context] → LLM → answer
-    5. return {answer, context, sparql_used, latency_ms}
-
 """
 
 import os
@@ -31,14 +15,9 @@ logger = structlog.get_logger(__name__)
 
 # RAG Pipeline
 class RagPipeline:
-    """
-    Main RAG + GraphRAG orchestrator.
-
-    Mode yang didukung:
-    - "Security Analysis"     : KG context (CVE/CWE/CAPEC chain) + LLM
-    - "Log Analysis"          : Log context (ChromaDB) + KG enrichment + LLM
-    - "KG Question Answering" : KG context + LLM (SPARQL-grounded)
-    """
+   """
+   Orchestrator utama untuk RAG-based LLM chatbot.
+   """
 
     SUPPORTED_MODES = {"Security Analysis", "Log Analysis", "KG Question Answering"}
 
@@ -48,14 +27,7 @@ class RagPipeline:
         sparql_client=None,
         retriever=None,
     ) -> None:
-        """
-        Inisialisasi pipeline dengan lazy-loading semua komponen.
-
-        Args:
-            llm_name      : OpenRouter model name (e.g., "openai/gpt-4o-mini", "google/gemini-2.0-flash")
-            sparql_client : Pre-initialized SparqlClient (opsional).
-            retriever     : Pre-initialized HybridRetriever (opsional).
-        """
+        
         self._llm_name = llm_name or os.getenv("OPENROUTER_MODEL", "openai/gpt-4o-mini")
         self._llm      = None   # lazy init
         self._client   = sparql_client  # lazy init
@@ -71,27 +43,7 @@ class RagPipeline:
         mode: str = "Security Analysis",
         chat_history: Optional[List[Dict]] = None,
     ) -> Dict[str, Any]:
-        """
-        Entry point utama pipeline.
-
-        Args:
-            question     : Pertanyaan natural language dari user.
-            mode         : Analysis mode (lihat SUPPORTED_MODES).
-            chat_history : Riwayat percakapan sebelumnya (opsional).
-
-        Returns:
-            Dict dengan keys:
-                - answer      (str)  : Respons LLM
-                - context     (str)  : Context yang diambil dari KG/log
-                - sparql_used (str)  : SPARQL query yang digunakan
-                - latency_ms  (float): Total waktu pemrosesan
-                - mode        (str)  : Mode yang digunakan
-                - llm         (str)  : Nama LLM yang digunakan
-                - error       (str)  : Error message jika ada
-
-        Raises:
-            ValueError: Jika mode tidak valid.
-        """
+       
         if mode not in self.SUPPORTED_MODES:
             raise ValueError(
                 f"Mode '{mode}' tidak valid. Gunakan salah satu: {self.SUPPORTED_MODES}"
@@ -135,10 +87,7 @@ class RagPipeline:
     def _security_analysis_flow(
         self, question: str, chat_history: Optional[List[Dict]]
     ) -> Dict[str, Any]:
-        """
-        Flow: Security Analysis.
-        CVE ID detected → multi-hop chain → LLM answer.
-        """
+       
         from rag_logic.prompt_templates import (
             SYSTEM_SECURITY_ANALYSIS,
             security_analysis_prompt,
@@ -184,10 +133,7 @@ class RagPipeline:
     def _log_analysis_flow(
         self, question: str, chat_history: Optional[List[Dict]]
     ) -> Dict[str, Any]:
-        """
-        Flow: Log Analysis.
-        Retriever → log context → KG enrichment → LLM answer.
-        """
+       
         from rag_logic.prompt_templates import SYSTEM_LOG_ANALYSIS, log_analysis_prompt
 
         # 1. Retrieve relevant log entries
@@ -237,10 +183,7 @@ class RagPipeline:
     def _kg_qa_flow(
         self, question: str, chat_history: Optional[List[Dict]]
     ) -> Dict[str, Any]:
-        """
-        Flow: KG Question Answering.
-        NL2SPARQL → SPARQL execution → LLM answer.
-        """
+    
         from rag_logic.prompt_templates import (
             SYSTEM_KG_QA,
             kg_qa_prompt,
@@ -297,17 +240,7 @@ class RagPipeline:
         user_prompt: str,
         chat_history: Optional[List[Dict]] = None,
     ):
-        """
-        Build list Message objects untuk LLM.
-
-        Args:
-            system_prompt: System prompt string.
-            user_prompt  : User prompt string.
-            chat_history : List of {"role": ..., "content": ...} dicts.
-
-        Returns:
-            List[Message]
-        """
+    
         from rag_logic.llm_connector import Message
 
         messages = [Message("system", system_prompt)]
