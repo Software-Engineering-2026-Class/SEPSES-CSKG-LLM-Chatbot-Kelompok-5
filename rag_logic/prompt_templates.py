@@ -1,8 +1,6 @@
 """
 Deskripsi:
-    Semua system/user prompt templates untuk mode analisis yang berbeda.
-    Templates menggunakan format f-string dengan placeholder {context} dan {question}.
-    Dirancang untuk menghasilkan respons yang grounded, explainable, dan terstruktur.
+File ini berisi template prompt untuk berbagai mode interaksi dengan LLM
 """
 
 # System Prompts — mendefinisikan perilaku LLM
@@ -125,17 +123,7 @@ SELECT ?cveId ?score ?product WHERE {
 # User Prompt Templates (f-string)
 
 def security_analysis_prompt(question: str, kg_context: str, log_context: str = "") -> str:
-    """
-    Prompt untuk mode Security Analysis.
-
-    Args:
-        question   : Pertanyaan user.
-        kg_context : Context dari SPARQL query (formatted string).
-        log_context: Context dari ChromaDB log search (opsional).
-
-    Returns:
-        str: Formatted user prompt.
-    """
+    
     log_section = ""
     if log_context:
         log_section = f"""
@@ -161,17 +149,6 @@ Structure your response with:
 
 
 def log_analysis_prompt(question: str, log_context: str, kg_context: str = "") -> str:
-    """
-    Prompt untuk mode Log Analysis.
-
-    Args:
-        question   : Pertanyaan user tentang log.
-        log_context: Retrieved log entries dari ChromaDB.
-        kg_context : KG enrichment untuk CVE mentions (opsional).
-
-    Returns:
-        str: Formatted user prompt.
-    """
     kg_section = ""
     if kg_context:
         kg_section = f"""
@@ -195,16 +172,7 @@ Analyze the log entries above and provide:
 
 
 def kg_qa_prompt(question: str, kg_context: str) -> str:
-    """
-    Prompt untuk mode KG Question Answering.
 
-    Args:
-        question  : Pertanyaan user tentang KG.
-        kg_context: Retrieved data dari SPARQL.
-
-    Returns:
-        str: Formatted user prompt.
-    """
     return f"""## SEPSES Knowledge Graph Data
 {kg_context}
 
@@ -217,15 +185,7 @@ specific entities (CVE IDs, CWE numbers, CAPEC IDs, CVSS scores) from the contex
 
 
 def nl2sparql_prompt(question: str) -> str:
-    """
-    Prompt untuk NL2SPARQL conversion.
-
-    Args:
-        question: Natural language question.
-
-    Returns:
-        str: Formatted prompt dengan few-shot examples.
-    """
+  
     examples_str = "\n\n".join(
         f"Q: {ex['question']}\nSPARQL:\n```sparql\n{ex['sparql']}\n```"
         for ex in NL2SPARQL_FEW_SHOTS
@@ -242,15 +202,7 @@ SPARQL:"""
 
 
 def format_kg_context(data: dict) -> str:
-    """
-    Format dict hasil SPARQL/get_cve_details menjadi readable string untuk LLM context.
-
-    Args:
-        data: Dict dari SparqlClient method atau list of dicts.
-
-    Returns:
-        str: Human-readable context string.
-    """
+   
     if not data:
         return "No relevant data found in SEPSES Knowledge Graph."
 

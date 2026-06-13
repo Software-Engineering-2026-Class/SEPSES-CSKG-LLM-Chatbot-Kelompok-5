@@ -50,9 +50,20 @@ GLOBAL_CSS = """
     color: var(--text-primary);
 }
 
+/* ── Ensure Streamlit Header & Sidebar Toggle are Visible ────────── */
 #MainMenu {visibility: hidden;}
 footer {visibility: hidden;}
-header {visibility: hidden;}
+
+header[data-testid="stHeader"] {
+    background: transparent !important;
+}
+
+/* Force the sidebar open/close icon to be white/visible on our dark background */
+header[data-testid="stHeader"] svg {
+    stroke: white !important;
+    fill: white !important;
+    color: white !important;
+}
 
 [data-testid="stSidebar"] {
     background: linear-gradient(180deg, #080c18 0%, #0c1526 100%);

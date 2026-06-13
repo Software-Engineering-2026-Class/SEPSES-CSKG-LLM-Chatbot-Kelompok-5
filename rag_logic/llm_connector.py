@@ -1,17 +1,5 @@
 """
-SEPSES CSKG LLM Chatbot - LLM Connector
-
-    Unified LLM connector using OpenRouter API.
-    OpenRouter provides access to 100+ models from multiple providers
-    through a single OpenAI-compatible API.
-
-    Supported models include:
-    - OpenAI: gpt-4o-mini, gpt-4o, gpt-3.5-turbo
-    - Google: gemini-flash-latest, gemini-1.5-pro, gemini-1.5-flash
-    - Anthropic: claude-3.5-sonnet, claude-3-haiku, claude-3-opus
-    - Meta: llama-3-70b-instruct, llama-3-8b-instruct
-    - Mistral: mistral-7b-instruct, mixtral-8x7b-instruct
-    - And 100+ more: https://openrouter.ai/models
+Unified LLM connector using OpenRouter API.
 """
 
 import os
@@ -28,26 +16,17 @@ logger = structlog.get_logger(__name__)
 
 # Message Type
 class Message:
-    """Representasi satu pesan dalam conversation."""
 
     ROLES = {"system", "user", "assistant"}
 
     def __init__(self, role: str, content: str) -> None:
-        """
-        Args:
-            role   : "system" | "user" | "assistant"
-            content: Teks pesan.
-
-        Raises:
-            ValueError: Jika role tidak valid.
-        """
+  
         if role not in self.ROLES:
             raise ValueError(f"Invalid role '{role}'. Must be one of: {self.ROLES}")
         self.role = role
         self.content = content
 
     def to_dict(self) -> dict:
-        """Convert ke dict format yang kompatibel dengan OpenAI API."""
         return {"role": self.role, "content": self.content}
 
     def __repr__(self) -> str:
@@ -56,7 +35,7 @@ class Message:
 
 # Abstract Base Class
 class BaseLLMConnector(ABC):
-    """Abstract interface untuk semua LLM connectors."""
+
 
     @abstractmethod
     def generate(
@@ -65,30 +44,11 @@ class BaseLLMConnector(ABC):
         temperature: float = 0.2,
         max_tokens: int = 2048,
     ) -> str:
-        """
-        Generate respons dari LLM.
-
-        Args:
-            messages   : List of Message objects (system + user + history).
-            temperature: Sampling temperature (0.0 = deterministic).
-            max_tokens : Maksimum panjang output.
-
-        Returns:
-            str: Respons teks dari LLM.
-
-        Raises:
-            RuntimeError: Jika LLM tidak tersedia atau terjadi error.
-        """
         ...
 
     @abstractmethod
     def ping(self) -> bool:
-        """
-        Cek apakah LLM backend tersedia.
-
-        Returns:
-            bool: True jika tersedia.
-        """
+        """Verifikasi koneksi ke LLM backend."""
         ...
 
     @property
@@ -100,25 +60,7 @@ class BaseLLMConnector(ABC):
 
 # OpenRouter Connector
 class OpenRouterConnector(BaseLLMConnector):
-    """
-    Unified connector to all LLM models via OpenRouter API.
-
-    OpenRouter is a unified API gateway that provides access to 100+ models
-    from OpenAI, Anthropic, Google, Meta, Mistral, and other providers
-    through a single OpenAI-compatible interface.
-
-    Environment variables yang diperlukan:
-        OPENROUTER_API_KEY : OpenRouter API key (get from https://openrouter.ai/keys)
-        OPENROUTER_MODEL   : Model identifier (default: openai/gpt-4o-mini)
-
-    Model naming format: "provider/model-name"
-    Examples:
-        - "openai/gpt-4o-mini"
-        - "google/gemini-flash-latest"
-        - "anthropic/claude-3.5-sonnet"
-        - "meta-llama/llama-3-70b-instruct"
-        - "mistralai/mistral-7b-instruct"
-    """
+    """LLM connector untuk OpenRouter API (OpenAI-compatible)."""
 
     OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 
@@ -127,14 +69,6 @@ class OpenRouterConnector(BaseLLMConnector):
         api_key: Optional[str] = None,
         model: Optional[str] = None,
     ) -> None:
-        """
-        Args:
-            api_key: OpenRouter API key. Default dari env var OPENROUTER_API_KEY.
-            model  : Model identifier. Default dari env var OPENROUTER_MODEL.
-
-        Raises:
-            RuntimeError: Jika openai package tidak terinstall atau API key kosong.
-        """
         try:
             from openai import OpenAI
 
@@ -176,20 +110,6 @@ class OpenRouterConnector(BaseLLMConnector):
         temperature: float = 0.2,
         max_tokens: int = 2048,
     ) -> str:
-        """
-        Generate respons menggunakan OpenRouter API.
-
-        Args:
-            messages   : List of Message objects.
-            temperature: Sampling temperature (0.0 - 2.0).
-            max_tokens : Maximum tokens untuk respons.
-
-        Returns:
-            str: Respons teks dari model.
-
-        Raises:
-            RuntimeError: Jika API call gagal.
-        """
         try:
             # Convert Message objects to dict format
             msg_dicts = [m.to_dict() for m in messages]
@@ -224,24 +144,13 @@ class OpenRouterConnector(BaseLLMConnector):
         temperature: float = 0.2,
         max_tokens: int = 2048,
     ):
-        """
-        Generate dengan pengukuran latency.
-
-        Returns:
-            tuple: (answer: str, latency_ms: float)
-        """
         start = time.time()
         answer = self.generate(messages, temperature, max_tokens)
         latency = round((time.time() - start) * 1000, 2)
         return answer, latency
 
     def ping(self) -> bool:
-        """
-        Verifikasi koneksi ke OpenRouter API.
 
-        Returns:
-            bool: True jika API tersedia dan API key valid.
-        """
         try:
             # Send minimal test request
             test_msg = [Message("user", "Hi")]
@@ -258,33 +167,7 @@ class OpenRouterConnector(BaseLLMConnector):
 
 # Factory Function
 def get_llm_connector(llm_name: str) -> BaseLLMConnector:
-    """
-    Factory function untuk membuat LLM connector.
-
-    Semua model sekarang diakses melalui OpenRouter API.
-    Model name harus dalam format "provider/model-name".
-
-    Args:
-        llm_name: Nama model dalam format OpenRouter.
-                  Examples:
-                  - "openai/gpt-4o-mini"
-                  - "google/gemini-flash-latest"
-                  - "anthropic/claude-3.5-sonnet"
-                  - "meta-llama/llama-3-70b-instruct"
-                  - "mistralai/mistral-7b-instruct"
-
-                  Legacy names (untuk backward compatibility):
-                  - "gpt-4o-mini" → "openai/gpt-4o-mini"
-                  - "gpt-4o" → "openai/gpt-4o"
-                  - "mistral" → "mistralai/mistral-7b-instruct"
-                  - "gemini" → "google/gemini-flash-latest"
-
-    Returns:
-        BaseLLMConnector: OpenRouter connector untuk model yang diminta.
-
-    Raises:
-        RuntimeError: Jika backend tidak tersedia.
-    """
+    
     # Normalize legacy model names to OpenRouter format
     model_mapping = {
         "gpt-4o-mini": "openai/gpt-4o-mini",
