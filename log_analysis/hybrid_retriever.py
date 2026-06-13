@@ -1,22 +1,3 @@
-"""
-SEPSES CSKG LLM Chatbot - Hybrid Log Retriever
-===============================================
-Tanggung Jawab  : Satya Wira Pramudita (Evaluator & Log Dev)
-Branch          : feature/eval-log-dev
-Standar         : IEEE 830, ISO/IEC 12207
-
-Deskripsi:
-    Hybrid retriever yang menggabungkan:
-    1. BM25 (keyword/sparse retrieval) via rank-bm25
-    2. Semantic search (dense retrieval) via ChromaDB
-    3. Reciprocal Rank Fusion (RRF) untuk re-ranking hasil
-
-    Pendekatan hybrid ini lebih robust dibanding single-method:
-    - BM25 bagus untuk exact match (CVE ID, IP address)
-    - Dense retrieval bagus untuk semantic similarity
-    - RRF menggabungkan keduanya tanpa memerlukan threshold tuning
-"""
-
 import os
 from typing import Any, Dict, List, Optional
 
@@ -33,16 +14,6 @@ logger = structlog.get_logger(__name__)
 
 
 class HybridRetriever:
-    """
-    Hybrid BM25 + Semantic retrieval dengan Reciprocal Rank Fusion (RRF).
-
-    Alur Kerja:
-    1. ingest_logs() → parse file → store ke ChromaDB + build BM25 index
-    2. search(query) → parallel BM25 + semantic search → RRF fusion → return top-k
-
-    RRF Formula: score(d) = Σ 1/(k + rank_i(d))
-    di mana k=60 (konstanta RRF) dan rank_i adalah peringkat di retriever ke-i.
-    """
 
     RRF_K = 60  # Konstanta RRF standar (Robertson & Zaragoza, 2009)
 
@@ -51,14 +22,7 @@ class HybridRetriever:
         vector_store: Optional[VectorStore] = None,
         top_k: Optional[int] = None,
     ) -> None:
-        """
-        Inisialisasi HybridRetriever.
 
-        Args:
-            vector_store: Instance VectorStore (ChromaDB). Jika None, dibuat baru.
-            top_k       : Jumlah default hasil retrieval.
-                          Default dari env TOP_K_RETRIEVAL (5).
-        """
         self._vector_store = vector_store or VectorStore()
         self._top_k = top_k or int(os.getenv("TOP_K_RETRIEVAL", "5"))
         self._parser = LogParser()
@@ -70,9 +34,6 @@ class HybridRetriever:
 
         logger.info("hybrid_retriever_init", top_k=self._top_k)
 
-    # ============================================================
-    # Public API
-    # ============================================================
 
     def ingest_logs(
         self,
@@ -80,20 +41,7 @@ class HybridRetriever:
         log_text: Optional[str] = None,
         log_type: LogType = LogType.UNKNOWN,
     ) -> int:
-        """
-        Ingest log dari file atau string teks ke VectorStore + BM25 index.
 
-        Args:
-            file_path : Path ke file log (opsional, exclusive dengan log_text).
-            log_text  : Konten log sebagai string (opsional).
-            log_type  : Tipe log (digunakan jika log_text diberikan).
-
-        Returns:
-            int: Jumlah log entry yang berhasil diingest.
-
-        Raises:
-            ValueError: Jika keduanya file_path dan log_text kosong, atau keduanya diisi.
-        """
         if not file_path and not log_text:
             raise ValueError("Harus menyediakan file_path atau log_text.")
         if file_path and log_text:
@@ -126,27 +74,7 @@ class HybridRetriever:
         top_k: Optional[int] = None,
         severity_filter: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
-        """
-        Hybrid search: BM25 + Semantic, di-fuse dengan RRF.
 
-        Args:
-            query          : Query dalam natural language atau keyword.
-            top_k          : Jumlah hasil (default: self._top_k).
-            severity_filter: Filter berdasarkan severity level (opsional).
-                             Nilai: "critical", "high", "medium", "low", "info".
-
-        Returns:
-            List[Dict]: Daftar hasil dengan key:
-                        - document  : Teks log entry
-                        - metadata  : Metadata entry
-                        - rrf_score : Skor gabungan RRF
-                        - id        : Document ID
-                        - sources   : ["bm25", "semantic"] yang berkontribusi
-
-        Raises:
-            ValueError: Jika query kosong.
-            RuntimeError: Jika belum ada data yang diingest.
-        """
         if not query or not query.strip():
             raise ValueError("Query tidak boleh kosong.")
 
@@ -190,12 +118,7 @@ class HybridRetriever:
         return fused_results
 
     def get_stats(self) -> Dict[str, Any]:
-        """
-        Ambil statistik retriever saat ini.
 
-        Returns:
-            Dict dengan info vector store dan BM25 index.
-        """
         vs_stats = self._vector_store.get_stats()
         return {
             **vs_stats,
@@ -203,45 +126,21 @@ class HybridRetriever:
             "bm25_index_ready": self._bm25_index is not None,
         }
 
-    # ============================================================
-    # Private Methods
-    # ============================================================
-
     def _semantic_search(
         self,
         query: str,
         top_k: int,
         where_filter: Optional[Dict] = None,
     ) -> List[Dict[str, Any]]:
-        """
-        Jalankan semantic search via ChromaDB.
 
-        Args:
-            query       : Query teks.
-            top_k       : Jumlah kandidat.
-            where_filter: Filter metadata ChromaDB.
-
-        Returns:
-            List[Dict]: Hasil semantic search.
-        """
         try:
             results = self._vector_store.search(query, top_k=top_k, where_filter=where_filter)
             return results
         except RuntimeError:
-            # Collection kosong, kembalikan hasil kosong
             return []
 
     def _bm25_search(self, query: str, top_k: int) -> List[Dict[str, Any]]:
-        """
-        Jalankan BM25 keyword search.
 
-        Args:
-            query : Query teks.
-            top_k : Jumlah kandidat.
-
-        Returns:
-            List[Dict]: Hasil BM25 search dengan skor.
-        """
         if not self._bm25_index or not self._bm25_corpus:
             return []
 
@@ -277,20 +176,7 @@ class HybridRetriever:
         bm25_results: List[Dict[str, Any]],
         top_k: int,
     ) -> List[Dict[str, Any]]:
-        """
-        Gabungkan hasil semantic dan BM25 menggunakan Reciprocal Rank Fusion.
 
-        RRF Score: score(d) = Σ_{r ∈ retrievers} 1 / (k + rank_r(d))
-        Konstanta k=60 mencegah dominasi hasil dengan ranking sangat tinggi.
-
-        Args:
-            semantic_results: Hasil dari ChromaDB (semantic search).
-            bm25_results    : Hasil dari BM25 (keyword search).
-            top_k           : Jumlah hasil akhir.
-
-        Returns:
-            List[Dict]: Hasil gabungan yang sudah di-sort berdasarkan RRF score.
-        """
         rrf_scores: Dict[str, float] = {}
         doc_data: Dict[str, Dict[str, Any]] = {}
         doc_sources: Dict[str, List[str]] = {}
@@ -325,14 +211,7 @@ class HybridRetriever:
         return fused
 
     def _build_bm25_index(self, new_entries: List[LogEntry]) -> None:
-        """
-        Build atau update BM25 index dengan entries baru.
 
-        BM25 index di-build in-memory dari seluruh corpus (append-only).
-
-        Args:
-            new_entries: LogEntry baru yang akan ditambahkan ke index.
-        """
         # Tambahkan ke corpus yang ada
         for entry in new_entries:
             self._bm25_corpus.append(entry.to_document_text())
