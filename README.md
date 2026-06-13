@@ -106,7 +106,7 @@ python evaluation/run_eval.py --llm openai/gpt-4o-mini anthropic/claude-3.5-sonn
 
 ---
 
-## 🐳 Quick Start with Docker
+## Quick Start with Docker
 
 Cara tercepat untuk menjalankan seluruh stack (Fuseki SPARQL triplestore + Streamlit chatbot) tanpa setup manual Python environment.
 
@@ -238,7 +238,7 @@ docker stats sepses_chatbot sepses_fuseki
 
 ---
 
-## 📁 Struktur Proyek
+## Struktur Proyek
 
 ```
 SEPSES-CSKG-LLM-Chatbot/
