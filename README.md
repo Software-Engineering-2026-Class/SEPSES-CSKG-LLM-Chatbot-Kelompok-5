@@ -182,17 +182,17 @@ docker compose logs fuseki --tail 50
 │              Docker Compose Network             │
 │                                                 │
 │  ┌──────────────┐       ┌────────────────────┐  │
-│  │   fuseki      │       │     chatbot        │  │
-│  │  (Jena 4.9)   │◄──────│  (Python 3.10)     │  │
-│  │  Port: 3030   │       │  Port: 8501        │  │
-│  │               │       │                    │  │
-│  │  SPARQL       │       │  Streamlit App     │  │
-│  │  Triplestore  │       │  + RAG Pipeline    │  │
+│  │   fuseki     │       │     chatbot        │  │
+│  │  (Jena 4.9)  │◄──────│  (Python 3.10)     │  │
+│  │  Port: 3030  │       │  Port: 8501        │  │
+│  │              │       │                    │  │
+│  │  SPARQL      │       │  Streamlit App     │  │
+│  │  Triplestore │       │  + RAG Pipeline    │  │
 │  └──────────────┘       │  + ChromaDB        │  │
-│        ▲                 └────────────────────┘  │
-│        │                          │              │
-│   fuseki_data                  ./data            │
-│   (Docker Volume)          (Bind Mount)          │
+│        ▲                └────────────────────┘  │
+│        │                          │             │
+│   fuseki_data                  ./data           │
+│   (Docker Volume)          (Bind Mount)         │
 └─────────────────────────────────────────────────┘
          │                          │
     ┌────┴────┐              ┌──────┴──────┐
@@ -203,7 +203,7 @@ docker compose logs fuseki --tail 50
          Host Machine (localhost)
 ```
 
-### Perintah Docker Berguna
+### Docker Commands
 
 ```bash
 # Hentikan semua services
