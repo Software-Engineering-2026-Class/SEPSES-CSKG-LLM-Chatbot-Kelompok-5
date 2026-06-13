@@ -106,6 +106,138 @@ python evaluation/run_eval.py --llm openai/gpt-4o-mini anthropic/claude-3.5-sonn
 
 ---
 
+## 🐳 Quick Start with Docker
+
+Cara tercepat untuk menjalankan seluruh stack (Fuseki SPARQL triplestore + Streamlit chatbot) tanpa setup manual Python environment.
+
+### Prerequisites
+
+| Komponen | Versi Minimum | Link Download |
+|----------|--------------|---------------|
+| **Docker Engine** | 20.10+ | [docs.docker.com/engine/install](https://docs.docker.com/engine/install/) |
+| **Docker Compose** | v2.0+ (built-in di Docker Desktop) | Sudah termasuk di Docker Desktop |
+| **OpenRouter API Key** | — | [openrouter.ai/keys](https://openrouter.ai/keys) |
+
+> **Note:** Pada Windows dan macOS, cukup install [Docker Desktop](https://www.docker.com/products/docker-desktop/) yang sudah menyertakan Docker Engine dan Docker Compose.
+
+### 1. Clone & Konfigurasi Environment
+
+```bash
+# Clone repository
+git clone https://github.com/Software-Engineering-2026-Class/SEPSES-CSKG-LLM-Chatbot-Kelompok-5.git
+cd SEPSES-CSKG-LLM-Chatbot-Kelompok-5
+
+# Salin template environment variables
+cp .env.example .env     # Linux/macOS
+copy .env.example .env   # Windows (CMD)
+```
+
+Edit file `.env` dan isi minimal konfigurasi berikut:
+
+```env
+# [WAJIB] API key untuk akses LLM via OpenRouter
+OPENROUTER_API_KEY=sk-or-v1-your-actual-api-key
+
+# [OPSIONAL] Ganti model LLM sesuai kebutuhan (default: gpt-4o-mini)
+OPENROUTER_MODEL=openai/gpt-4o-mini
+```
+
+### 2. Jalankan dengan Docker Compose
+
+```bash
+# Jalankan semua services (Fuseki + Chatbot)
+docker compose up -d
+
+# Atau jalankan hanya SPARQL triplestore (untuk development lokal)
+docker compose up fuseki -d
+```
+
+### 3. Akses Aplikasi
+
+| Service | URL | Deskripsi |
+|---------|-----|-----------|
+| **Streamlit Chatbot** | [http://localhost:8501](http://localhost:8501) | Antarmuka chatbot utama |
+| **Fuseki Admin Panel** | [http://localhost:3030](http://localhost:3030) | SPARQL triplestore admin (user: `admin`, password: sesuai `FUSEKI_ADMIN_PASSWORD` di `.env`, default: `admin123`) |
+
+### 4. Verifikasi Health Check
+
+```bash
+# Cek status semua container
+docker compose ps
+
+# Cek health Fuseki endpoint
+curl http://localhost:3030/$/ping
+
+# Cek log chatbot
+docker compose logs chatbot --tail 50
+
+# Cek log Fuseki
+docker compose logs fuseki --tail 50
+```
+
+### Docker Service Architecture
+
+```
+┌─────────────────────────────────────────────────┐
+│              Docker Compose Network             │
+│                                                 │
+│  ┌──────────────┐       ┌────────────────────┐  │
+│  │   fuseki      │       │     chatbot        │  │
+│  │  (Jena 4.9)   │◄──────│  (Python 3.10)     │  │
+│  │  Port: 3030   │       │  Port: 8501        │  │
+│  │               │       │                    │  │
+│  │  SPARQL       │       │  Streamlit App     │  │
+│  │  Triplestore  │       │  + RAG Pipeline    │  │
+│  └──────────────┘       │  + ChromaDB        │  │
+│        ▲                 └────────────────────┘  │
+│        │                          │              │
+│   fuseki_data                  ./data            │
+│   (Docker Volume)          (Bind Mount)          │
+└─────────────────────────────────────────────────┘
+         │                          │
+    ┌────┴────┐              ┌──────┴──────┐
+    │ :3030   │              │   :8501     │
+    │ Fuseki  │              │  Streamlit  │
+    │  Admin  │              │  Chatbot UI │
+    └─────────┘              └─────────────┘
+         Host Machine (localhost)
+```
+
+### Perintah Docker Berguna
+
+```bash
+# Hentikan semua services
+docker compose down
+
+# Hentikan dan hapus volumes (reset data Fuseki)
+docker compose down -v
+
+# Rebuild image chatbot (setelah update kode/dependencies)
+docker compose build chatbot
+
+# Rebuild dan jalankan ulang
+docker compose up -d --build
+
+# Masuk ke shell container chatbot (debugging)
+docker exec -it sepses_chatbot bash
+
+# Lihat resource usage
+docker stats sepses_chatbot sepses_fuseki
+```
+
+### Troubleshooting Docker
+
+| Masalah | Solusi |
+|---------|--------|
+| Port `8501` sudah digunakan | Ubah port mapping di `docker-compose.yml`: `"8502:8501"` |
+| Port `3030` sudah digunakan | Ubah port mapping di `docker-compose.yml`: `"3031:3030"` |
+| Chatbot gagal start | Pastikan `.env` sudah terisi dengan benar, cek `docker compose logs chatbot` |
+| Fuseki unhealthy | Cek memory: Fuseki butuh minimal ~2GB RAM (`JVM_ARGS=-Xmx2g`) |
+| Build lambat | Build pertama kali akan mengunduh embedding model (~90MB). Build berikutnya akan lebih cepat berkat Docker cache |
+| Permission denied (Linux) | Jalankan dengan `sudo` atau tambahkan user ke group docker: `sudo usermod -aG docker $USER` |
+
+---
+
 ## 📁 Struktur Proyek
 
 ```
