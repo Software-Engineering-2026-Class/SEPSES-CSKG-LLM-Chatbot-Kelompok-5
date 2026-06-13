@@ -88,6 +88,56 @@ copy .env.example .env
 # Edit .env dengan API key dan konfigurasi yang sesuai
 ```
 
+#### Referensi Variabel Environment (`.env.example`)
+
+Berikut adalah seluruh variabel yang tersedia di `.env.example`. Salin file tersebut menjadi `.env`, lalu isi nilainya sesuai kebutuhan.
+
+> **⚠️ PENTING:** File `.env` berisi secret (API key). **JANGAN** pernah commit file `.env` ke repository. File ini sudah tercantum di `.gitignore`.
+
+**1. OpenRouter Configuration (Unified LLM Access)**
+
+| Variabel | Wajib | Default | Deskripsi |
+|----------|:-----:|---------|-----------|
+| `OPENROUTER_API_KEY` | ✅ | — | API key untuk akses LLM via OpenRouter. Dapatkan di [openrouter.ai/keys](https://openrouter.ai/keys). |
+| `OPENROUTER_MODEL` | ❌ | `openai/gpt-4o-mini` | Model LLM yang digunakan untuk chat/RAG pipeline. Lihat [daftar model](https://openrouter.ai/models) untuk opsi lengkap. Contoh: `google/gemini-flash-latest`, `anthropic/claude-3.5-sonnet`, `meta-llama/llama-3-70b-instruct`. |
+
+**2. SEPSES SPARQL Endpoint**
+
+| Variabel | Wajib | Default | Deskripsi |
+|----------|:-----:|---------|-----------|
+| `SPARQL_ENDPOINT` | ❌ | `https://w3id.org/sepses/sparql` | URL endpoint SPARQL publik SEPSES. Digunakan untuk query CVE, CWE, CAPEC, CPE, dan ATT&CK. |
+| `SPARQL_TIMEOUT_SECONDS` | ❌ | `30` | Batas waktu (detik) untuk setiap SPARQL query sebelum timeout. |
+
+**3. Apache Jena Fuseki (Local Fallback)**
+
+| Variabel | Wajib | Default | Deskripsi |
+|----------|:-----:|---------|-----------|
+| `FUSEKI_ENDPOINT` | ❌ | `http://localhost:3030/sepses/sparql` | URL endpoint SPARQL Fuseki lokal. Digunakan sebagai fallback jika endpoint publik SEPSES tidak tersedia. |
+| `FUSEKI_UPDATE_ENDPOINT` | ❌ | `http://localhost:3030/sepses/update` | URL endpoint SPARQL Update Fuseki lokal untuk operasi write (insert/update data RDF). |
+
+**4. ChromaDB Vector Store**
+
+| Variabel | Wajib | Default | Deskripsi |
+|----------|:-----:|---------|-----------|
+| `CHROMA_DB_PATH` | ❌ | `./data/chroma_db` | Path direktori penyimpanan persistent ChromaDB untuk vector embeddings. |
+| `CHROMA_COLLECTION_LOGS` | ❌ | `security_logs` | Nama collection ChromaDB yang digunakan untuk menyimpan log keamanan yang sudah di-embed. |
+| `EMBEDDING_MODEL` | ❌ | `sentence-transformers/all-MiniLM-L6-v2` | Model embedding dari HuggingFace untuk konversi teks ke vektor. Model ini digunakan oleh ChromaDB untuk semantic search. |
+
+**5. Evaluation Settings**
+
+| Variabel | Wajib | Default | Deskripsi |
+|----------|:-----:|---------|-----------|
+| `JUDGE_MODEL` | ❌ | `gpt-4o-mini` | Model LLM yang digunakan sebagai *judge* dalam framework **LLM-as-a-Judge** untuk menilai kualitas respons chatbot. |
+| `EVAL_RESULTS_DIR` | ❌ | `./evaluation/results` | Path direktori output hasil evaluasi (skor, laporan, dan grafik). |
+
+**6. Application Settings**
+
+| Variabel | Wajib | Default | Deskripsi |
+|----------|:-----:|---------|-----------|
+| `LOG_LEVEL` | ❌ | `INFO` | Level logging aplikasi. Opsi: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`. |
+| `MAX_CONTEXT_TOKENS` | ❌ | `4000` | Jumlah maksimal token konteks yang dikirim ke LLM dalam satu request. Mengatur trade-off antara kelengkapan konteks vs biaya/kecepatan. |
+| `TOP_K_RETRIEVAL` | ❌ | `5` | Jumlah dokumen/chunk teratas yang diambil dari vector store saat retrieval. Nilai lebih tinggi = konteks lebih lengkap, tapi lebih lambat. |
+
 ### 3. Jalankan Aplikasi
 
 ```bash
@@ -106,7 +156,139 @@ python evaluation/run_eval.py --llm openai/gpt-4o-mini anthropic/claude-3.5-sonn
 
 ---
 
-## 📁 Struktur Proyek
+## Quick Start with Docker
+
+Cara tercepat untuk menjalankan seluruh stack (Fuseki SPARQL triplestore + Streamlit chatbot) tanpa setup manual Python environment.
+
+### Prerequisites
+
+| Komponen | Versi Minimum | Link Download |
+|----------|--------------|---------------|
+| **Docker Engine** | 20.10+ | [docs.docker.com/engine/install](https://docs.docker.com/engine/install/) |
+| **Docker Compose** | v2.0+ (built-in di Docker Desktop) | Sudah termasuk di Docker Desktop |
+| **OpenRouter API Key** | — | [openrouter.ai/keys](https://openrouter.ai/keys) |
+
+> **Note:** Pada Windows dan macOS, cukup install [Docker Desktop](https://www.docker.com/products/docker-desktop/) yang sudah menyertakan Docker Engine dan Docker Compose.
+
+### 1. Clone & Konfigurasi Environment
+
+```bash
+# Clone repository
+git clone https://github.com/Software-Engineering-2026-Class/SEPSES-CSKG-LLM-Chatbot-Kelompok-5.git
+cd SEPSES-CSKG-LLM-Chatbot-Kelompok-5
+
+# Salin template environment variables
+cp .env.example .env     # Linux/macOS
+copy .env.example .env   # Windows (CMD)
+```
+
+Edit file `.env` dan isi minimal konfigurasi berikut:
+
+```env
+# [WAJIB] API key untuk akses LLM via OpenRouter
+OPENROUTER_API_KEY=sk-or-v1-your-actual-api-key
+
+# [OPSIONAL] Ganti model LLM sesuai kebutuhan (default: gpt-4o-mini)
+OPENROUTER_MODEL=openai/gpt-4o-mini
+```
+
+### 2. Jalankan dengan Docker Compose
+
+```bash
+# Jalankan semua services (Fuseki + Chatbot)
+docker compose up -d
+
+# Atau jalankan hanya SPARQL triplestore (untuk development lokal)
+docker compose up fuseki -d
+```
+
+### 3. Akses Aplikasi
+
+| Service | URL | Deskripsi |
+|---------|-----|-----------|
+| **Streamlit Chatbot** | [http://localhost:8501](http://localhost:8501) | Antarmuka chatbot utama |
+| **Fuseki Admin Panel** | [http://localhost:3030](http://localhost:3030) | SPARQL triplestore admin (user: `admin`, password: sesuai `FUSEKI_ADMIN_PASSWORD` di `.env`, default: `admin123`) |
+
+### 4. Verifikasi Health Check
+
+```bash
+# Cek status semua container
+docker compose ps
+
+# Cek health Fuseki endpoint
+curl http://localhost:3030/$/ping
+
+# Cek log chatbot
+docker compose logs chatbot --tail 50
+
+# Cek log Fuseki
+docker compose logs fuseki --tail 50
+```
+
+### Docker Service Architecture
+
+```
+┌─────────────────────────────────────────────────┐
+│              Docker Compose Network             │
+│                                                 │
+│  ┌──────────────┐       ┌────────────────────┐  │
+│  │   fuseki     │       │     chatbot        │  │
+│  │  (Jena 4.9)  │◄──────│  (Python 3.10)     │  │
+│  │  Port: 3030  │       │  Port: 8501        │  │
+│  │              │       │                    │  │
+│  │  SPARQL      │       │  Streamlit App     │  │
+│  │  Triplestore │       │  + RAG Pipeline    │  │
+│  └──────────────┘       │  + ChromaDB        │  │
+│        ▲                └────────────────────┘  │
+│        │                          │             │
+│   fuseki_data                  ./data           │
+│   (Docker Volume)          (Bind Mount)         │
+└─────────────────────────────────────────────────┘
+         │                          │
+    ┌────┴────┐              ┌──────┴──────┐
+    │ :3030   │              │   :8501     │
+    │ Fuseki  │              │  Streamlit  │
+    │  Admin  │              │  Chatbot UI │
+    └─────────┘              └─────────────┘
+         Host Machine (localhost)
+```
+
+### Docker Commands
+
+```bash
+# Hentikan semua services
+docker compose down
+
+# Hentikan dan hapus volumes (reset data Fuseki)
+docker compose down -v
+
+# Rebuild image chatbot (setelah update kode/dependencies)
+docker compose build chatbot
+
+# Rebuild dan jalankan ulang
+docker compose up -d --build
+
+# Masuk ke shell container chatbot (debugging)
+docker exec -it sepses_chatbot bash
+
+# Lihat resource usage
+docker stats sepses_chatbot sepses_fuseki
+```
+
+### Troubleshooting Docker
+
+| Masalah | Solusi |
+|---------|--------|
+| Port `8501` sudah digunakan | Ubah port mapping di `docker-compose.yml`: `"8502:8501"` |
+| Port `3030` sudah digunakan | Ubah port mapping di `docker-compose.yml`: `"3031:3030"` |
+| Chatbot gagal start | Pastikan `.env` sudah terisi dengan benar, cek `docker compose logs chatbot` |
+| Fuseki unhealthy | Cek memory: Fuseki butuh minimal ~2GB RAM (`JVM_ARGS=-Xmx2g`) |
+| Build lambat | Build pertama kali akan mengunduh embedding model (~90MB). Build berikutnya akan lebih cepat berkat Docker cache |
+| Permission denied (Linux) | Jalankan dengan `sudo` atau tambahkan user ke group docker: `sudo usermod -aG docker $USER` |
+
+---
+
+## Struktur Proyek
 
 ```
 SEPSES-CSKG-LLM-Chatbot/
@@ -117,9 +299,10 @@ SEPSES-CSKG-LLM-Chatbot/
 ├── kg_engine/                # [Ajie] Knowledge Graph Engine
 │   ├── sparql_client.py      # SEPSES SPARQL endpoint client
 │   ├── graph_builder.py      # NetworkX graph builder
-│   ├── ontology_schema.ttl   # SEPSES ontology schema
+│   ├── ontology_schema.txt   # SEPSES ontology schema
 │   └── queries/              # SPARQL query templates
 │       ├── vulnerability_lookup.rq
+│       ├── search_by_product.rq
 │       └── get_capec_from_cve.rq
 │
 ├── rag_logic/                # [Fahmi] RAG Pipeline
@@ -152,6 +335,8 @@ SEPSES-CSKG-LLM-Chatbot/
     ├── cskg_dumps/           # SEPSES RDF dump files
     ├── chroma_db/            # ChromaDB persistent storage
     └── sample_logs/          # Sample security logs
+        └── snort_sample.log
+
 ```
 
 ---
@@ -205,14 +390,5 @@ Proyek ini menggunakan **OpenRouter** sebagai unified API gateway untuk akses ke
 | CAPEC Vocabulary | http://w3id.org/sepses/vocab/ref/capec |
 | CPE Vocabulary   | http://w3id.org/sepses/vocab/ref/cpe   |
 | CVSS Vocabulary  | http://w3id.org/sepses/vocab/ref/cvss  |
-
----
-
-## 🔒 Security Notes
-
-- Semua API key disimpan di `.env` (tidak di-commit ke Git)
-- Lihat `.env.example` untuk template konfigurasi
-- Input sanitization diimplementasikan di setiap endpoint
-- Prepared statements digunakan untuk semua SPARQL queries
 
 ---

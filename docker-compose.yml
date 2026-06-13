@@ -1,19 +1,5 @@
 version: '3.9'
 
-# ============================================================
-# SEPSES CSKG LLM Chatbot - Docker Compose
-# ============================================================
-# Services:
-#   fuseki  : Apache Jena Fuseki (SPARQL triplestore lokal)
-#   chatbot : Streamlit application
-#
-# Note: LLM inference now uses OpenRouter API (cloud-based)
-#       No local LLM server needed.
-#
-# Penggunaan:
-#   docker compose up fuseki   # Hanya SPARQL endpoint
-#   docker compose up          # Semua services
-# ============================================================
 
 services:
 

@@ -1,21 +1,3 @@
-"""
-SEPSES CSKG LLM Chatbot - ChromaDB Vector Store Wrapper
-========================================================
-Tanggung Jawab  : Satya Wira Pramudita (Evaluator & Log Dev)
-Branch          : feature/eval-log-dev
-Standar         : IEEE 830, ISO/IEC 12207
-
-Deskripsi:
-    Wrapper ChromaDB untuk persistent storage dan semantic search
-    atas security log entries yang telah diproses oleh log_parser.py.
-
-    Fitur:
-    - Persistent storage di path yang dikonfigurasi via .env
-    - Embedding menggunakan sentence-transformers (lokal, tanpa API key)
-    - Collection management per sumber log
-    - Batch upsert dengan deduplication via doc_id
-"""
-
 import logging
 import os
 from typing import Any, Dict, List, Optional
@@ -40,15 +22,6 @@ logger = structlog.get_logger(__name__)
 # VectorStore Implementation
 # ============================================================
 class VectorStore:
-    """
-    ChromaDB wrapper untuk security log embeddings.
-
-    Menyediakan operasi:
-    - ingest      : Simpan batch LogEntry ke ChromaDB
-    - search      : Semantic similarity search
-    - delete_collection : Hapus seluruh collection
-    - get_stats   : Info jumlah document per collection
-    """
 
     def __init__(
         self,
@@ -56,21 +29,6 @@ class VectorStore:
         embedding_model: Optional[str] = None,
         collection_name: Optional[str] = None,
     ) -> None:
-        """
-        Inisialisasi ChromaDB client dan embedding model.
-
-        Args:
-            db_path         : Path direktori persistent ChromaDB.
-                              Default dari env CHROMA_DB_PATH.
-            embedding_model : Nama model sentence-transformers.
-                              Default dari env EMBEDDING_MODEL.
-            collection_name : Nama collection ChromaDB.
-                              Default dari env CHROMA_COLLECTION_LOGS.
-
-        Raises:
-            OSError: Jika direktori db_path tidak dapat dibuat.
-            RuntimeError: Jika embedding model gagal diload.
-        """
         self._db_path = db_path or os.getenv("CHROMA_DB_PATH", "./data/chroma_db")
         self._model_name = embedding_model or os.getenv(
             "EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2"
@@ -86,7 +44,6 @@ class VectorStore:
             collection=self._collection_name
         )
 
-        # Buat direktori jika belum ada
         try:
             os.makedirs(self._db_path, exist_ok=True)
         except OSError as exc:
@@ -110,27 +67,9 @@ class VectorStore:
         # Get or create collection
         self._collection = self._get_or_create_collection(self._collection_name)
 
-    # ============================================================
-    # Public API
-    # ============================================================
 
     def ingest(self, entries: List[LogEntry], batch_size: int = 100) -> int:
-        """
-        Ingest batch LogEntry ke ChromaDB dengan embedding.
 
-        Menggunakan doc_id sebagai ChromaDB ID untuk deduplication
-        (upsert behavior: jika ID sama, data akan diupdate).
-
-        Args:
-            entries    : Daftar LogEntry dari log_parser.
-            batch_size : Jumlah dokumen per batch untuk menghindari OOM.
-
-        Returns:
-            int: Jumlah dokumen yang berhasil di-ingest.
-
-        Raises:
-            ValueError: Jika entries kosong.
-        """
         if not entries:
             logger.warning("ingest_empty_entries")
             raise ValueError("List entries tidak boleh kosong.")
@@ -182,26 +121,7 @@ class VectorStore:
         top_k: int = 5,
         where_filter: Optional[Dict[str, Any]] = None,
     ) -> List[Dict[str, Any]]:
-        """
-        Semantic similarity search atas log entries.
 
-        Args:
-            query       : Query teks dalam natural language.
-            top_k       : Jumlah hasil teratas yang dikembalikan.
-            where_filter: Filter metadata ChromaDB (opsional).
-                          Contoh: {"severity": "high"}
-
-        Returns:
-            List[Dict]: Daftar hasil dengan key:
-                        - document  : Teks dokumen
-                        - metadata  : Metadata log entry
-                        - distance  : Cosine distance (makin kecil makin relevan)
-                        - id        : Document ID
-
-        Raises:
-            ValueError: Jika query kosong.
-            RuntimeError: Jika collection kosong.
-        """
         if not query or not query.strip():
             raise ValueError("Query tidak boleh kosong.")
 
@@ -251,15 +171,7 @@ class VectorStore:
         return formatted_results
 
     def delete_collection(self, confirm: bool = False) -> None:
-        """
-        Hapus seluruh collection dari ChromaDB.
 
-        Args:
-            confirm: Harus True untuk konfirmasi penghapusan (safety guard).
-
-        Raises:
-            ValueError: Jika confirm tidak True.
-        """
         if not confirm:
             raise ValueError(
                 "Operasi delete_collection memerlukan confirm=True sebagai safety guard."
@@ -271,15 +183,7 @@ class VectorStore:
         logger.info("collection_deleted_and_recreated", collection=self._collection_name)
 
     def get_stats(self) -> Dict[str, Any]:
-        """
-        Ambil statistik collection saat ini.
 
-        Returns:
-            Dict dengan:
-            - collection_name : Nama collection
-            - document_count  : Jumlah dokumen
-            - db_path         : Path ChromaDB
-        """
         return {
             "collection_name": self._collection_name,
             "document_count": self._collection.count(),
@@ -287,12 +191,7 @@ class VectorStore:
         }
 
     def switch_collection(self, collection_name: str) -> None:
-        """
-        Pindah ke collection lain (berguna untuk isolasi per sumber log).
 
-        Args:
-            collection_name: Nama collection baru.
-        """
         logger.info(
             "switching_collection",
             from_collection=self._collection_name,
@@ -301,20 +200,10 @@ class VectorStore:
         self._collection_name = collection_name
         self._collection = self._get_or_create_collection(collection_name)
 
-    # ============================================================
-    # Private Methods
-    # ============================================================
+
 
     def _get_or_create_collection(self, name: str):
-        """
-        Get existing collection atau create baru jika belum ada.
 
-        Args:
-            name: Nama collection ChromaDB.
-
-        Returns:
-            chromadb.Collection: Collection object.
-        """
         try:
             collection = self._client.get_or_create_collection(
                 name=name,
