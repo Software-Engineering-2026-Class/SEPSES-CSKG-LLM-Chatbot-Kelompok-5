@@ -1,15 +1,5 @@
 """
 SEPSES CSKG LLM Chatbot - NL2SPARQL Converter
-
-Deskripsi:
-    Mengkonversi pertanyaan natural language ke SPARQL query
-    menggunakan LLM (few-shot prompting) + regex-based fallback
-    untuk pertanyaan yang pola umumnya sudah diketahui.
-
-    Strategi:
-    1. Regex pattern matching untuk pola umum (fast, no API call)
-    2. LLM-based generation dengan few-shot prompt untuk kasus kompleks
-    3. Validasi hasil query sebelum dieksekusi
 """
 
 import re
@@ -35,10 +25,6 @@ CAPEC_URI_BASE = "http://w3id.org/sepses/resource/capec/"
 
 # Regex Pattern Matcher (fast path — no LLM needed)
 class RegexSparqlMatcher:
-    """
-    Cepat generate SPARQL untuk pola pertanyaan yang umum
-    tanpa memanggil LLM (hemat biaya API).
-    """
 
     # Pattern: pertanyaan tentang CVE spesifik
     CVE_ID_PATTERN = re.compile(
@@ -64,15 +50,7 @@ class RegexSparqlMatcher:
     )
 
     def match(self, question: str) -> Optional[str]:
-        """
-        Coba match question ke pola yang diketahui.
 
-        Args:
-            question: Natural language question.
-
-        Returns:
-            str: SPARQL query jika match, None jika tidak ada pola.
-        """
         question_clean = question.strip()
 
         # CVE ID Lookup 
@@ -218,36 +196,14 @@ WHERE {{
 
 # LLM-based NL2SPARQL Converter
 class NL2SPARQL:
-    """
-    Natural Language → SPARQL converter.
-
-    Strategi dua tahap:
-    1. Regex matcher untuk pola umum (tidak perlu API call)
-    2. LLM few-shot generation untuk kasus kompleks
-    """
 
     def __init__(self, llm: BaseLLMConnector) -> None:
-        """
-        Args:
-            llm: LLM connector untuk fallback generation.
-        """
+
         self._llm     = llm
         self._matcher = RegexSparqlMatcher()
 
     def convert(self, question: str) -> Tuple[str, str]:
-        """
-        Convert natural language question ke SPARQL query.
 
-        Args:
-            question: Natural language question dari user.
-
-        Returns:
-            Tuple[str, str]: (sparql_query, method_used)
-                - method_used: "regex" | "llm" | "fallback"
-
-        Raises:
-            RuntimeError: Jika LLM gagal dan tidak ada fallback.
-        """
         # Step 1: Regex fast path 
         regex_result = self._matcher.match(question)
         if regex_result:
@@ -283,15 +239,7 @@ class NL2SPARQL:
 
     @staticmethod
     def _extract_sparql(llm_output: str) -> str:
-        """
-        Ekstrak SPARQL query dari output LLM (biasanya ada dalam code block).
 
-        Args:
-            llm_output: Raw output string dari LLM.
-
-        Returns:
-            str: SPARQL query string yang diekstrak.
-        """
         # Coba extract dari ```sparql ... ``` atau ``` ... ```
         patterns = [
             r"```sparql\s*([\s\S]+?)```",
@@ -317,15 +265,7 @@ class NL2SPARQL:
 
     @staticmethod
     def _validate_sparql(sparql: str) -> bool:
-        """
-        Validasi dasar apakah string merupakan SPARQL SELECT yang valid.
-
-        Args:
-            sparql: Query string.
-
-        Returns:
-            bool: True jika tampaknya valid.
-        """
+    
         sparql_upper = sparql.upper()
         has_select = "SELECT" in sparql_upper
         has_where  = "WHERE" in sparql_upper
