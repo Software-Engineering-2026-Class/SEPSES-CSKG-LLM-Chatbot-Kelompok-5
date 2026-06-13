@@ -88,6 +88,56 @@ copy .env.example .env
 # Edit .env dengan API key dan konfigurasi yang sesuai
 ```
 
+#### Referensi Variabel Environment (`.env.example`)
+
+Berikut adalah seluruh variabel yang tersedia di `.env.example`. Salin file tersebut menjadi `.env`, lalu isi nilainya sesuai kebutuhan.
+
+> **⚠️ PENTING:** File `.env` berisi secret (API key). **JANGAN** pernah commit file `.env` ke repository. File ini sudah tercantum di `.gitignore`.
+
+**1. OpenRouter Configuration (Unified LLM Access)**
+
+| Variabel | Wajib | Default | Deskripsi |
+|----------|:-----:|---------|-----------|
+| `OPENROUTER_API_KEY` | ✅ | — | API key untuk akses LLM via OpenRouter. Dapatkan di [openrouter.ai/keys](https://openrouter.ai/keys). |
+| `OPENROUTER_MODEL` | ❌ | `openai/gpt-4o-mini` | Model LLM yang digunakan untuk chat/RAG pipeline. Lihat [daftar model](https://openrouter.ai/models) untuk opsi lengkap. Contoh: `google/gemini-flash-latest`, `anthropic/claude-3.5-sonnet`, `meta-llama/llama-3-70b-instruct`. |
+
+**2. SEPSES SPARQL Endpoint**
+
+| Variabel | Wajib | Default | Deskripsi |
+|----------|:-----:|---------|-----------|
+| `SPARQL_ENDPOINT` | ❌ | `https://w3id.org/sepses/sparql` | URL endpoint SPARQL publik SEPSES. Digunakan untuk query CVE, CWE, CAPEC, CPE, dan ATT&CK. |
+| `SPARQL_TIMEOUT_SECONDS` | ❌ | `30` | Batas waktu (detik) untuk setiap SPARQL query sebelum timeout. |
+
+**3. Apache Jena Fuseki (Local Fallback)**
+
+| Variabel | Wajib | Default | Deskripsi |
+|----------|:-----:|---------|-----------|
+| `FUSEKI_ENDPOINT` | ❌ | `http://localhost:3030/sepses/sparql` | URL endpoint SPARQL Fuseki lokal. Digunakan sebagai fallback jika endpoint publik SEPSES tidak tersedia. |
+| `FUSEKI_UPDATE_ENDPOINT` | ❌ | `http://localhost:3030/sepses/update` | URL endpoint SPARQL Update Fuseki lokal untuk operasi write (insert/update data RDF). |
+
+**4. ChromaDB Vector Store**
+
+| Variabel | Wajib | Default | Deskripsi |
+|----------|:-----:|---------|-----------|
+| `CHROMA_DB_PATH` | ❌ | `./data/chroma_db` | Path direktori penyimpanan persistent ChromaDB untuk vector embeddings. |
+| `CHROMA_COLLECTION_LOGS` | ❌ | `security_logs` | Nama collection ChromaDB yang digunakan untuk menyimpan log keamanan yang sudah di-embed. |
+| `EMBEDDING_MODEL` | ❌ | `sentence-transformers/all-MiniLM-L6-v2` | Model embedding dari HuggingFace untuk konversi teks ke vektor. Model ini digunakan oleh ChromaDB untuk semantic search. |
+
+**5. Evaluation Settings**
+
+| Variabel | Wajib | Default | Deskripsi |
+|----------|:-----:|---------|-----------|
+| `JUDGE_MODEL` | ❌ | `gpt-4o-mini` | Model LLM yang digunakan sebagai *judge* dalam framework **LLM-as-a-Judge** untuk menilai kualitas respons chatbot. |
+| `EVAL_RESULTS_DIR` | ❌ | `./evaluation/results` | Path direktori output hasil evaluasi (skor, laporan, dan grafik). |
+
+**6. Application Settings**
+
+| Variabel | Wajib | Default | Deskripsi |
+|----------|:-----:|---------|-----------|
+| `LOG_LEVEL` | ❌ | `INFO` | Level logging aplikasi. Opsi: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`. |
+| `MAX_CONTEXT_TOKENS` | ❌ | `4000` | Jumlah maksimal token konteks yang dikirim ke LLM dalam satu request. Mengatur trade-off antara kelengkapan konteks vs biaya/kecepatan. |
+| `TOP_K_RETRIEVAL` | ❌ | `5` | Jumlah dokumen/chunk teratas yang diambil dari vector store saat retrieval. Nilai lebih tinggi = konteks lebih lengkap, tapi lebih lambat. |
+
 ### 3. Jalankan Aplikasi
 
 ```bash
