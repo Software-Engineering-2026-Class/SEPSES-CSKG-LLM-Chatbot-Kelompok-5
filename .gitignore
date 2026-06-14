@@ -1,7 +1,3 @@
-# ============================================================
-# SEPSES CSKG LLM Chatbot - Git Ignore Configuration
-# ============================================================
-
 # ---- CRITICAL: Environment & Secrets ----
 .env
 .env.local

