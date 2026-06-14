@@ -1,0 +1,34 @@
+{
+  "_description": "Contoh input ke SEPSES CSKG LLM Chatbot — perspektif pengguna",
+  "_note": "File ini menunjukkan 3 skenario input sesuai 3 mode chatbot yang tersedia",
+
+  "scenario_1_security_analysis": {
+    "mode": "Security Analysis",
+    "user_question": "Jelaskan kerentanan CVE-2021-44228 dan bagaimana attacker bisa mengeksploitasinya?",
+    "chat_history": [],
+    "selected_llm": "openai/gpt-4o-mini",
+    "_explanation": "User mengetik pertanyaan di chat. Sistem mendeteksi CVE ID, lalu query SPARQL ke SEPSES KG untuk mendapatkan detail CVE, CWE, CAPEC, dan CVSS. Hasilnya menjadi konteks bagi LLM untuk menjawab."
+  },
+
+  "scenario_2_log_analysis": {
+    "mode": "Log Analysis",
+    "user_question": "Analisis log ini, temukan ancaman kritis dan rekomendasikan mitigasi",
+    "uploaded_log_file": "snort_sample.log",
+    "uploaded_log_content_preview": [
+      "06/24-09:12:33.456789 [**] [1:1000001:1] SQL Injection Attempt [**] [Priority: 1] [Classification: Web Application Attack] {TCP} 192.168.100.50:54321 -> 10.0.0.10:3306",
+      "06/24-09:13:01.789012 [**] [1:1000003:1] CVE-2021-44228 Log4Shell Exploit Attempt [**] [Priority: 1] [Classification: Attempted User Privilege Gain] {TCP} 203.0.113.42:12345 -> 10.0.0.15:8080",
+      "06/24-09:16:45.345678 [**] [1:1000005:1] CVE-2017-0144 EternalBlue SMB Exploit [**] [Priority: 1] [Classification: Attempted Administrator Privilege Gain] {TCP} 203.0.113.55:65535 -> 10.0.0.5:445"
+    ],
+    "chat_history": [],
+    "selected_llm": "openai/gpt-4o-mini",
+    "_explanation": "User upload file Snort log via Log Analyzer page. Log di-parse oleh LogParser menjadi LogEntry terstruktur, lalu di-embed ke ChromaDB. Saat user bertanya, sistem retrieve log entries yang relevan + query CVE ke KG, lalu LLM menganalisis semuanya."
+  },
+
+  "scenario_3_kg_question_answering": {
+    "mode": "KG Question Answering",
+    "user_question": "Produk apa saja yang terdampak kerentanan dengan skor CVSS di atas 9?",
+    "chat_history": [],
+    "selected_llm": "openai/gpt-4o-mini",
+    "_explanation": "User bertanya dalam bahasa natural. Sistem translate pertanyaan ke SPARQL query (NL2SPARQL), eksekusi ke SEPSES KG endpoint, format hasilnya, lalu LLM merangkum jawaban dalam bahasa yang mudah dipahami."
+  }
+}
